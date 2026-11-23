@@ -1,0 +1,84 @@
+---
+# Rol ad_member: une el servidor a AD (realmd + SSSD) y limita el acceso a un grupo, como en la Fase 3
+- name: Paquetes de realmd y SSSD
+  ansible.builtin.apt:
+    name: "{{ ad_member_packages }}"
+    state: present
+
+- name: Estado actual de la union al dominio
+  ansible.builtin.command: realm list --name-only
+  register: ad_member_realms
+  changed_when: false
+  failed_when: false        # en --check sobre un servidor nuevo realm aun no esta instalado: "no unido"
+  check_mode: false
+
+# La contrasena entra por stdin: no aparece en la linea de comandos ni en el log
+- name: Unir al dominio con la cuenta delegada (reutiliza la cuenta de equipo si ya existe)
+  ansible.builtin.command:
+    argv:
+      - realm
+      - join
+      - --user={{ ad_member_join_user }}
+      - --computer-ou={{ ad_member_computer_ou }}
+      - "{{ ad_member_domain }}"
+    stdin: "{{ ad_member_join_password }}"
+  when: ad_member_domain not in ad_member_realms.stdout_lines
+  changed_when: true
+  no_log: true
+
+- name: Politica de inicio de sesion actual
+  ansible.builtin.command: realm list {{ ad_member_domain }}
+  register: ad_member_policy
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Solo el grupo permitido puede iniciar sesion (realm deny --all + permit -g)
+  ansible.builtin.command:
+    argv: "{{ item }}"
+  loop:
+    - [realm, deny, --all]
+    - [realm, permit, -g, "{{ ad_member_permit_group }}"]
+  when: >-
+    'login-policy: allow-permitted-logins' not in ad_member_policy.stdout or
+    ad_member_permit_group not in ad_member_policy.stdout
+  changed_when: true
+
+- name: Comprobar pam_mkhomedir
+  ansible.builtin.command: grep -q pam_mkhomedir /etc/pam.d/common-session
+  register: ad_member_mkhomedir
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Carpeta personal al primer inicio de sesion (pam_mkhomedir)
+  ansible.builtin.command: pam-auth-update --enable mkhomedir
+  when: ad_member_mkhomedir.rc != 0
+  changed_when: true
+
+- name: Sudo para el grupo de administradores Linux de AD (validado con visudo)
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/10-ad-linux-admins
+    content: "%{{ ad_member_permit_group }} ALL=(ALL:ALL) ALL\n"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: visudo -cf %s
+
+- name: SSSD activo
+  ansible.builtin.systemd_service:
+    name: sssd
+    enabled: true
+    state: started
+  ignore_errors: "{{ ansible_check_mode }}"   # en --check sobre un servidor nuevo sssd aun no esta instalado
+
+# realm join escribe "services = nss, pam" en sssd.conf: sssd arranca esos respondedores el mismo y los sockets de
+# systemd chocan con ellos y quedan en "failed" (hallazgo del rol patching, Fase 10.2)
+- name: Sin activacion por socket de los respondedores de SSSD
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    enabled: false
+    state: stopped
+  loop: [sssd-nss.socket, sssd-pam.socket, sssd-pam-priv.socket]
+  ignore_errors: "{{ ansible_check_mode }}"
+  notify: Olvidar sockets fallidos de SSSD

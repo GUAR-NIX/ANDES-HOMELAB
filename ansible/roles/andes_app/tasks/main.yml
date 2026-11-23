@@ -1,0 +1,70 @@
+---
+# Rol andes_app: Andes App (Flask + PostgreSQL) en Docker Compose, copia diaria de la BD
+- name: Carpetas de la aplicacion
+  ansible.builtin.file:
+    path: "{{ andes_app_dir }}/{{ item.path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  loop:
+    - { path: "", mode: "0755" }
+    - { path: app, mode: "0755" }
+    - { path: reports, mode: "0755" }
+    - { path: secrets, mode: "0700" }
+    - { path: backups, mode: "0700" }
+  loop_control:
+    label: "{{ andes_app_dir }}/{{ item.path }}"
+
+- name: Codigo y definicion de la aplicacion
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ andes_app_dir }}/{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: [compose.yaml, .env.example, .gitignore, app/app.py, app/Dockerfile, app/requirements.txt]
+  notify: Reconstruir y levantar Andes App
+
+# 0644 porque Compose monta el archivo tal cual y los contenedores (uid 70 y 10001)
+# tienen que leerlo; la carpeta secrets/ (0700 root) es la que lo protege
+- name: Contrasena de la base de datos (desde Vault)
+  ansible.builtin.copy:
+    dest: "{{ andes_app_dir }}/secrets/db_password.txt"
+    content: "{{ vault_andes_db_password }}"
+    owner: root
+    group: root
+    mode: "0644"
+  no_log: true
+  notify: Reconstruir y levantar Andes App
+
+- name: Script de copia de la base de datos
+  ansible.builtin.copy:
+    src: andes-pgdump
+    dest: /usr/local/bin/andes-pgdump
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Copia diaria a la 01:30
+  ansible.builtin.copy:
+    src: andes-pgdump.cron
+    dest: /etc/cron.d/andes-pgdump
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Contenedores en marcha
+  ansible.builtin.command: docker compose ps --status running --services
+  args:
+    chdir: "{{ andes_app_dir }}"
+  register: andes_app_ps
+  changed_when: false
+  check_mode: false
+
+- name: Levantar si falta algun servicio
+  ansible.builtin.command: docker compose up -d
+  args:
+    chdir: "{{ andes_app_dir }}"
+  when: andes_app_ps.stdout_lines | sort != ['app', 'db']
+  changed_when: true

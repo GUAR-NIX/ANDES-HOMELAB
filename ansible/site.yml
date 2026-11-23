@@ -1,0 +1,33 @@
+---
+# Playbook principal de Andes: linea base + servicios
+- name: Linea base de los servidores Linux
+  hosts: linux
+  become: true
+  roles: [common, hardening]
+
+# srv-siem01 es el propio manager de Wazuh y no lo monitoriza Prometheus
+- name: Agentes de monitorizacion y SIEM
+  hosts: linux:!security
+  become: true
+  roles: [node_exporter, wazuh_agent]
+
+- name: Docker (Grafana/Prometheus en mon01, Andes App en srv-app01)
+  hosts: mon01:app
+  become: true
+  roles: [docker]
+
+- name: Andes App
+  hosts: app
+  become: true
+  roles: [andes_app]
+
+# Union a AD de la Fase 3 como codigo (se perdia al reconstruir: simulacro DR-03)
+- name: Miembros del dominio corp.lab.internal
+  hosts: app
+  become: true
+  roles: [ad_member]
+
+- name: Proxy inverso de la DMZ
+  hosts: dmz
+  become: true
+  roles: [nginx_proxy]

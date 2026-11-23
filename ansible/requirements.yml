@@ -1,0 +1,5 @@
+---
+# Colecciones que usan los roles (CI y adm-ans01)
+collections:
+  - name: community.general
+    version: ">=8.0.0"

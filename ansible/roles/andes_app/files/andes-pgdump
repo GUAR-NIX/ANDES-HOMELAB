@@ -1,0 +1,8 @@
+#!/bin/bash
+set -euo pipefail
+umask 077
+DIR=/opt/andes-app/backups
+F="$DIR/andes_$(date +%F_%H%M).dump"
+docker exec andes-app-db-1 pg_dump -U andes_app -Fc andes > "$F"
+find "$DIR" -name 'andes_*.dump' -mtime +14 -delete
+logger -t andes-pgdump "copia creada: $F ($(stat -c %s "$F") bytes)"

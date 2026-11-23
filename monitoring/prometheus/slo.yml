@@ -1,0 +1,23 @@
+groups:
+  - name: slo-andes-app
+    interval: 1m
+    rules:
+      # SLI: proporcion de sondas HTTPS correctas a la app (objetivo 99 % semanal)
+      - record: sli:app_disponibilidad:ratio_1h
+        expr: avg_over_time(probe_success{instance="https://app.corp.lab.internal/health"}[1h])
+      - record: sli:app_disponibilidad:ratio_7d
+        expr: avg_over_time(probe_success{instance="https://app.corp.lab.internal/health"}[7d])
+      # Minutos sin servicio en 7 dias (sondas fallidas x 30 s)
+      - record: slo:app_minutos_caida:7d
+        expr: (count_over_time(probe_success{instance="https://app.corp.lab.internal/health"}[7d]) - sum_over_time(probe_success{instance="https://app.corp.lab.internal/health"}[7d])) * 30 / 60
+      # Horas realmente medidas dentro de la ventana (al principio hay menos de 7 dias de datos)
+      - record: slo:app_horas_medidas:7d
+        expr: count_over_time(probe_success{instance="https://app.corp.lab.internal/health"}[7d]) * 30 / 3600
+      # Presupuesto de error restante sobre la semana completa: 1 % de 7 dias = 100,8 min (1 = intacto, 0 = agotado)
+      - record: slo:app_presupuesto_restante:ratio_7d
+        expr: 1 - slo:app_minutos_caida:7d / 100.8
+      - alert: SLOPresupuestoBajo
+        expr: slo:app_presupuesto_restante:ratio_7d < 0.25
+        for: 15m
+        labels: { severity: warning }
+        annotations: { summary: "Andes App ha consumido mas del 75% del presupuesto de error semanal" }

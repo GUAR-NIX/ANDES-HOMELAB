@@ -1,0 +1,9 @@
+[Unit]
+Description=Andes - revision de accesos el dia 1 de cada trimestre (o al arrancar si se perdio)
+
+[Timer]
+OnCalendar=*-01,04,07,10-01 09:30:00 America/Guayaquil
+Persistent=true
+
+[Install]
+WantedBy=timers.target

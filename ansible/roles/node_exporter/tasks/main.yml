@@ -1,0 +1,21 @@
+---
+# Rol node_exporter: metricas del sistema para Prometheus (mon01 las recoge por 9100)
+- name: Paquete node_exporter de Ubuntu
+  ansible.builtin.apt:
+    name: prometheus-node-exporter
+    state: present
+
+# apt instala los paquetes recomendados de prometheus-node-exporter-collectors, entre ellos ipmitool, que arrastra
+# openipmi: en una VM no hay IPMI y su servicio queda en estado "failed" (hallazgo del rol patching, Fase 10.2)
+- name: Sin herramientas IPMI (no hay hardware IPMI en una VM)
+  ansible.builtin.apt:
+    name: [ipmitool, openipmi]
+    state: absent
+    purge: true
+  notify: Olvidar unidades fallidas de IPMI
+
+- name: Servicio node_exporter activo
+  ansible.builtin.systemd_service:
+    name: prometheus-node-exporter
+    enabled: true
+    state: started

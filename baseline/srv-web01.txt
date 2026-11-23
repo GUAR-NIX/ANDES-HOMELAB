@@ -1,0 +1,50 @@
+# Linea base SRV-WEB01 - 2026-11-21T21:18:38Z
+## Claves SSH autorizadas
+/root:
+256 SHA256:N8ptVOzy+MsH3nsTKDWlAPrTCt7mwInvTchpPQaHBi4 labadmin (ED25519)
+/home/labadmin:
+256 SHA256:N8ptVOzy+MsH3nsTKDWlAPrTCt7mwInvTchpPQaHBi4 labadmin (ED25519)
+256 SHA256:R0BKuUPOh/J4UrlcoY03zfgjHOXU7y5hRYrcTKLVmbA erick@adm-ans01 (ED25519)
+## /etc/cron.d
+total 28
+drwx------   2 root root  4096 Oct 17 12:56 .
+drwxr-xr-x 120 root root 12288 Nov 21 20:04 ..
+-rw-r--r--   1 root root   102 Mar 31  2024 .placeholder
+-rw-r--r--   1 root root   201 Apr  8  2024 e2scrub_all
+-rw-r--r--   1 root root   396 Jan  9  2024 sysstat
+## crontab de usuarios
+total 8
+drwx-wx--T 2 root crontab 4096 Mar 31  2024 .
+drwxr-xr-x 3 root root    4096 Oct 17 12:55 ..
+## Timers de systemd
+sysstat-collect.timer
+prometheus-node-exporter-apt.timer
+prometheus-node-exporter-nvme.timer
+prometheus-node-exporter-smartmon.timer
+fwupd-refresh.timer
+motd-news.timer
+apt-show-versions.timer
+dpkg-db-backup.timer
+logrotate.timer
+sysstat-summary.timer
+lynis.timer
+man-db.timer
+e2scrub_all.timer
+apt-daily-upgrade.timer
+apt-daily.timer
+update-notifier-download.timer
+systemd-tmpfiles-clean.timer
+fstrim.timer
+update-notifier-motd.timer
+apport-autoreport.timer
+prometheus-node-exporter-ipmitool-sensor.timer
+prometheus-node-exporter-mellanox-hca-temp.timer
+ua-timer.timer
+## Unidades en /etc/systemd/system
+## Usuarios UID>=1000 y UID 0
+root:0:/bin/bash
+labadmin:1000:/bin/bash
+## Grupo sudo
+sudo:x:27:labadmin
+## Contenido de /var/www
+/var/www/html/index.nginx-debian.html

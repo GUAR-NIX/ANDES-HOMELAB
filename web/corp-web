@@ -1,0 +1,57 @@
+# HTTP -> HTTPS
+server {
+    listen 80;
+    server_name srv-web01.corp.lab.internal app.corp.lab.internal;
+    return 301 https://$host$request_uri;
+}
+
+
+# Aplicacion publicada: app.corp.lab.internal -> SRV-APP01:8080
+server {
+    listen 443 ssl http2;
+    server_name app.corp.lab.internal;
+
+    ssl_certificate     /etc/ssl/corp/srv-web01-fullchain.pem;
+    ssl_certificate_key /etc/ssl/corp/srv-web01.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_tickets off;
+
+    server_tokens off;
+    add_header Strict-Transport-Security "max-age=31536000" always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options DENY always;
+    add_header Referrer-Policy no-referrer always;
+    add_header Content-Security-Policy "default-src 'self'; frame-ancestors 'none'" always;
+
+    location / {
+        proxy_pass http://10.10.20.30:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_connect_timeout 5s;
+        proxy_read_timeout 30s;
+    }
+}
+
+# Nombre del servidor: pagina de estado
+server {
+    listen 443 ssl http2;
+    server_name srv-web01.corp.lab.internal;
+
+    ssl_certificate     /etc/ssl/corp/srv-web01-fullchain.pem;
+    ssl_certificate_key /etc/ssl/corp/srv-web01.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_session_tickets off;
+
+    server_tokens off;
+    add_header Strict-Transport-Security "max-age=31536000" always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options DENY always;
+
+    location / {
+        default_type text/plain;
+        return 200 "SRV-WEB01 OK - proxy de app.corp.lab.internal\n";
+    }
+}

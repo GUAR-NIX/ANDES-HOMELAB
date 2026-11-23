@@ -1,0 +1,8 @@
+---
+hardening_ufw_extra_rules:
+  - { port: "80", proto: tcp, from: any, comment: "HTTP redirige a HTTPS" }
+  - { port: "443", proto: tcp, from: any, comment: "HTTPS web" }
+  - { port: "9100", proto: tcp, from: 10.10.10.20, comment: "Metricas a MON01" }
+
+# Parcheo (rol patching, RB-03)
+patching_services: [nginx, wazuh-agent, prometheus-node-exporter]

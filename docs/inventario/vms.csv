@@ -1,0 +1,11 @@
+vmid,nombre,estado,plantilla,vcpu,ram_mb,balloon_mb,vlan,discos,arranque,etiquetas
+100,FW-OPN01,running,no,2,2048,-,WAN + troncal,scsi0=16G,si,
+110,adm-ans01,running,no,2,1536,1024,10 MGMT,scsi0=16G,si,
+120,mon01,running,no,2,2048,0,10 MGMT,scsi0=25G,si,mon terraform
+130,srv-app01,running,no,2,2560,0,20 SERVERS,scsi0=16G,si,app terraform
+140,srv-siem01,running,no,4,6144,0,40 SEC,scsi0=60G,si,
+150,srv-web01,running,no,2,1536,1024,50 DMZ,scsi0=16G,si,dmz terraform
+160,srv-pbs01,stopped,no,2,2048,0,60 BKP,scsi0=32G scsi1=120G scsi2=64G,no,pbs terraform
+201,DC01,running,no,2,2560,0,20 SERVERS,scsi0=40G scsi1=30G,si,
+301,test-users,stopped,no,2,1024,512,30 USERS,scsi0=16G,no,
+9000,tpl-ubuntu-2404,stopped,si,2,1024,0,-,scsi0=16G,no,

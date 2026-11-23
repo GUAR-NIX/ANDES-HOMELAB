@@ -1,0 +1,6 @@
+---
+- name: Reconstruir y levantar Andes App
+  ansible.builtin.command: docker compose up -d --build
+  args:
+    chdir: "{{ andes_app_dir }}"
+  changed_when: true

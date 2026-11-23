@@ -1,0 +1,8 @@
+---
+hardening_ufw_extra_rules:
+  - { port: "9100", proto: tcp, from: 172.16.0.0/12, comment: "Prometheus (Docker) a node_exporter local" }
+  - { port: "443", proto: tcp, from: 10.99.0.0/24, comment: "Grafana HTTPS desde VPN" }
+  - { port: "443", proto: tcp, from: 10.10.10.0/24, comment: "Grafana HTTPS desde MGMT" }
+
+# Parcheo (rol patching, RB-03)
+patching_services: [docker, wazuh-agent, prometheus-node-exporter]

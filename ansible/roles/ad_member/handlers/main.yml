@@ -1,0 +1,6 @@
+---
+# Parar una unidad no borra su estado "failed": hay que olvidarlo para que systemctl --failed quede limpio
+- name: Olvidar sockets fallidos de SSSD
+  ansible.builtin.command: systemctl reset-failed sssd-nss.socket sssd-pam.socket sssd-pam-priv.socket  # noqa: command-instead-of-module
+  changed_when: true
+  failed_when: false

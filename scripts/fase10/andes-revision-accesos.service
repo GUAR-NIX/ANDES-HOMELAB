@@ -1,0 +1,14 @@
+[Unit]
+Description=Andes - revision de accesos trimestral (informe en docs/operacion/accesos)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=labadmin
+WorkingDirectory=/home/labadmin/andes-config
+# El script devuelve 1 cuando hay hallazgos: el informe se guarda igual y queda pendiente de revisar y firmar
+ExecStart=/bin/bash -c '. /home/labadmin/.secrets/pve-terraform.env; python3 scripts/revision-accesos.py; \
+  git pull -q --rebase origin main && git add docs/operacion/accesos && \
+  (git diff --cached --quiet || git commit -qm "ops: revision de accesos $(date +%%Y)-T$(( ($(date +%%-m)-1)/3+1 ))") && git push -q origin main'
+TimeoutStartSec=30min

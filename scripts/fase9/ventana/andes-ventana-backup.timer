@@ -1,0 +1,9 @@
+[Unit]
+Description=Andes - ventana diaria de copias a las 22:00 (y al arrancar si se perdio)
+
+[Timer]
+OnCalendar=*-*-* 22:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

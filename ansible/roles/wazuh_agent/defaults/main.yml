@@ -1,0 +1,5 @@
+---
+wazuh_agent_manager: 10.10.40.10
+wazuh_agent_version: 4.14.10-1
+# Grupo del agente en el manager; se fija por grupo de inventario (group_vars)
+wazuh_agent_group: default

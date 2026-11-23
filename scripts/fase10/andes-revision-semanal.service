@@ -1,0 +1,14 @@
+[Unit]
+Description=Andes - revision semanal de operacion (informe en docs/operacion/informes)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=labadmin
+WorkingDirectory=/home/labadmin/andes-config
+# El script devuelve 1 cuando hay avisos: no es un fallo del servicio, el informe se guarda igual
+ExecStart=/bin/bash -c '. /home/labadmin/.secrets/pve-terraform.env; python3 scripts/revision-semanal.py; \
+  git pull -q --rebase origin main && git add docs/operacion/informes && \
+  (git diff --cached --quiet || git commit -qm "ops: revision semanal $(date +%%G-W%%V)") && git push -q origin main'
+TimeoutStartSec=30min

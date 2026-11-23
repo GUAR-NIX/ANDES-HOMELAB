@@ -1,0 +1,12 @@
+---
+# Parcheo mensual (RB-03). Uno a uno y en este orden: si un servidor falla, la ejecucion se detiene ahi.
+# Ensayo:   ansible-playbook patch.yml --check
+# Un host:  ansible-playbook patch.yml --limit srv-app01
+# No lanzar durante la ventana de copias (22:00): el SIEM esta apagado.
+- name: Parcheo de los servidores Linux
+  hosts: dmz:app:mon01:security:adm-ans01
+  become: true
+  serial: 1
+  max_fail_percentage: 0
+  order: inventory
+  roles: [patching]

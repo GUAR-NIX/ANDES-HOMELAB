@@ -1,0 +1,30 @@
+---
+# Reglas UFW comunes: SSH solo desde la red de gestion y la VPN
+hardening_ufw_base_rules:
+  - { port: "22", proto: tcp, from: 10.10.10.0/24, comment: "SSH desde MGMT" }
+  - { port: "22", proto: tcp, from: 10.99.0.0/24, comment: "SSH desde VPN" }
+# Comentarios de claves SSH que no deben estar autorizadas para labadmin en ningun servidor
+hardening_ssh_claves_retiradas: [labadmin]       # clave de la plantilla 9000 (privada en /root de PVE01)
+# Reglas propias de cada servidor (en host_vars)
+hardening_ufw_extra_rules: []
+
+# Archivos de la linea base (ruta destino = ruta dentro de files/) y permisos
+hardening_files:
+  - { path: /etc/ssh/sshd_config.d/10-hardening.conf, mode: "0600", notify: "Validar y recargar SSH" }
+  - { path: /etc/ssh/sshd_config.d/11-hardening2.conf, mode: "0600", notify: "Validar y recargar SSH" }
+  - { path: /etc/ssh/sshd_config.d/11-cis.conf, mode: "0600", notify: "Validar y recargar SSH" }
+  - { path: /etc/issue.net, mode: "0644" }
+  - { path: /etc/sysctl.d/60-lab-hardening.conf, mode: "0644", notify: "Aplicar sysctl" }
+  - { path: /etc/sysctl.d/61-lab-hardening2.conf, mode: "0644", notify: "Aplicar sysctl" }
+  - { path: /etc/sysctl.d/61-cis.conf, mode: "0640", notify: "Aplicar sysctl" }
+  - { path: /etc/modprobe.d/lab-hardening.conf, mode: "0644" }
+  - { path: /etc/modprobe.d/60-cis.conf, mode: "0640" }
+  - { path: /etc/security/limits.d/lab-core.conf, mode: "0644" }
+  - { path: /etc/security/limits.d/60-cis.conf, mode: "0640" }
+  - { path: /etc/audit/rules.d/50-identity.rules, mode: "0644", notify: "Recargar reglas de auditd" }
+  - { path: /etc/systemd/journald.conf.d/lab.conf, mode: "0644", notify: "Reiniciar journald" }
+  - { path: /etc/apt/apt.conf.d/52lab-unattended, mode: "0644" }
+  - { path: /etc/apt/apt.conf.d/20auto-upgrades, mode: "0644" }
+  - { path: /etc/fail2ban/jail.d/lab-sshd.local, mode: "0644", notify: "Reiniciar fail2ban" }
+  - { path: /etc/profile.d/60-cis-tmout.sh, mode: "0640" }
+  - { path: /etc/tmpfiles.d/sshd-privsep.conf, mode: "0640" }

@@ -1,0 +1,6 @@
+---
+# Rol patching (RB-03): parches de Ubuntu, reinicio si hace falta, purga de kernels viejos y comprobacion
+patching_reboot: true            # adm-ans01 lo pone a false: es el nodo de control y se reinicia a mano al final
+patching_reboot_timeout: 900
+# Servicios que deben seguir activos tras el parcheo (por grupo/host en group_vars/host_vars)
+patching_services: []

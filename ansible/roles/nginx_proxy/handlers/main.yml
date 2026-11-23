@@ -1,0 +1,4 @@
+---
+- name: Validar y recargar nginx
+  ansible.builtin.shell: nginx -t && systemctl reload nginx
+  changed_when: true

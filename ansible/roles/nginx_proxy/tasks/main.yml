@@ -1,0 +1,68 @@
+---
+# Rol nginx_proxy: proxy inverso TLS de la DMZ hacia Andes App.
+# La configuracion sale de web/corp-web del repositorio (fuente de verdad, ver INC-0001)
+- name: Paquete nginx
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+
+- name: Sin version de nginx en las respuestas
+  ansible.builtin.replace:
+    path: /etc/nginx/nginx.conf
+    regexp: '^(\s*)#\s*server_tokens off;'
+    replace: '\1server_tokens off;'
+  notify: Validar y recargar nginx
+
+- name: Carpeta de certificados
+  ansible.builtin.file:
+    path: /etc/ssl/corp
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Certificado con la cadena de Andes-Issuing-CA
+  ansible.builtin.copy:
+    src: srv-web01-fullchain.pem
+    dest: /etc/ssl/corp/srv-web01-fullchain.pem
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Validar y recargar nginx
+
+- name: Clave privada (desde Vault)
+  ansible.builtin.copy:
+    dest: /etc/ssl/corp/srv-web01.key
+    content: "{{ vault_web_tls_key }}"
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+  notify: Validar y recargar nginx
+
+- name: Sitio corp-web desde git (validado con nginx -t antes de recargar)
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../web/corp-web"
+    dest: /etc/nginx/sites-available/corp-web
+    owner: root
+    group: root
+    mode: "0640"
+  notify: Validar y recargar nginx
+
+- name: Sitio habilitado
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/corp-web
+    dest: /etc/nginx/sites-enabled/corp-web
+    state: link
+
+- name: Sin el sitio por defecto
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Validar y recargar nginx
+
+- name: Servicio nginx activo
+  ansible.builtin.systemd_service:
+    name: nginx
+    enabled: true
+    state: started

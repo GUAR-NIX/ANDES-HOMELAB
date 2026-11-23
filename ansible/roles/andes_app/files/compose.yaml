@@ -1,0 +1,47 @@
+name: andes-app
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: andes
+      POSTGRES_USER: andes_app
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets: [db_password]
+    volumes: [dbdata:/var/lib/postgresql/data]
+    networks: [backend]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U andes_app -d andes"]
+      interval: 10s
+      retries: 5
+
+  app:
+    build: ./app
+    image: andes-app:1.0.1            # version fija, nunca :latest
+    restart: unless-stopped
+    user: "10001:10001"               # no root
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      DATABASE_HOST: db
+      DATABASE_NAME: andes
+      DATABASE_USER: andes_app
+      DATABASE_PASSWORD_FILE: /run/secrets/db_password
+    secrets: [db_password]
+    ports: ["10.10.20.30:8080:8080"]  # solo en la IP interna, nunca 0.0.0.0
+    networks: [backend]
+
+networks:
+  backend: {}
+
+volumes:
+  dbdata: {}
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt

@@ -1,0 +1,10 @@
+---
+# Union al dominio de la Fase 3, ahora como codigo (carencia descubierta en el simulacro DR-03)
+ad_member_domain: corp.lab.internal
+ad_member_computer_ou: OU=Linux,OU=Servidores,OU=CORP,DC=corp,DC=lab,DC=internal
+# Cuenta de servicio con delegacion SOLO sobre objetos de equipo de esa OU (no es admin del dominio)
+ad_member_join_user: svc-adjoin
+ad_member_join_password: "{{ vault_ad_join_password }}"
+# Solo este grupo de AD puede iniciar sesion y usar sudo (T14)
+ad_member_permit_group: gg-linux-admins@corp.lab.internal
+ad_member_packages: [realmd, sssd, sssd-tools, libnss-sss, libpam-sss, adcli, samba-common-bin, oddjob, oddjob-mkhomedir, packagekit]

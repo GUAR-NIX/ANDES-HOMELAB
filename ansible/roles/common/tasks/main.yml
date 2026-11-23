@@ -1,0 +1,38 @@
+---
+# Rol common: paquetes base, hora contra el gateway, agente QEMU y CA interna
+- name: Paquetes base
+  ansible.builtin.apt:
+    name: [chrony, auditd, ufw, unattended-upgrades, qemu-guest-agent, ca-certificates]
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Hora solo contra el gateway de la VLAN (OPNsense)
+  ansible.builtin.copy:
+    dest: /etc/chrony/sources.d/lab-gateway.sources
+    content: "server {{ ansible_default_ipv4.gateway }} iburst\n"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reiniciar chrony
+
+- name: Sin pool NTP de Ubuntu (el firewall lo bloquea y genera ruido en el SIEM)
+  ansible.builtin.replace:
+    path: /etc/chrony/chrony.conf
+    regexp: '^pool '
+    replace: '#pool '
+  notify: Reiniciar chrony
+
+- name: Agente QEMU en marcha (lo arranca el canal virtio; la unidad es estatica)
+  ansible.builtin.systemd_service:
+    name: qemu-guest-agent
+    state: started
+
+- name: CA raiz interna Andes-Root-CA
+  ansible.builtin.copy:
+    src: andes-root.crt
+    dest: /usr/local/share/ca-certificates/andes-root.crt
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Actualizar CA

@@ -1,0 +1,97 @@
+---
+# Rol patching: se usa desde patch.yml (serial: 1), nunca desde site.yml
+- name: Paquetes retenidos (no se actualizan; Wazuh se actualiza aparte y a la vez que el manager)
+  ansible.builtin.command: apt-mark showhold
+  register: patching_hold
+  changed_when: false
+  check_mode: false
+
+- name: Actualizar el sistema (respeta los paquetes retenidos)
+  ansible.builtin.apt:
+    upgrade: dist
+    update_cache: true
+    cache_valid_time: 0
+  register: patching_apt
+
+- name: Resumen de la actualizacion
+  ansible.builtin.debug:
+    msg: >-
+      {{ inventory_hostname }}: {{ 'paquetes actualizados' if patching_apt is changed else 'sin cambios' }};
+      retenidos: {{ patching_hold.stdout_lines | join(', ') | default('ninguno', true) }}
+
+- name: Comprobar si el sistema pide reinicio
+  ansible.builtin.stat:
+    path: /run/reboot-required
+  register: patching_reboot_required
+
+- name: Reiniciar (uno a uno, gracias a serial 1 en patch.yml)
+  ansible.builtin.reboot:
+    reboot_timeout: "{{ patching_reboot_timeout }}"
+    msg: "Reinicio por parcheo (RB-03)"
+  when: patching_reboot and patching_reboot_required.stat.exists
+
+- name: Aviso de reinicio pendiente (nodo de control)
+  ansible.builtin.debug:
+    msg: "{{ inventory_hostname }} necesita reinicio: hacerlo a mano al terminar (RB-03)"
+  when: not patching_reboot and patching_reboot_required.stat.exists
+
+- name: Kernel en uso
+  ansible.builtin.command: uname -r
+  register: patching_uname
+  changed_when: false
+  check_mode: false
+
+- name: Kernels instalados
+  ansible.builtin.shell: |
+    set -o pipefail
+    dpkg-query -W -f='${Package} ${Status}\n' 'linux-image-[0-9]*' | awk '/install ok installed/{print $1}'
+  args:
+    executable: /bin/bash
+  register: patching_kernels
+  changed_when: false
+  check_mode: false
+
+# Solo si el kernel en uso es el mas nuevo instalado: asi nunca se borra el kernel de reserva antes de probar el nuevo.
+# Cada kernel viejo instalado suma unas 1.000 CVE al inventario de vulnerabilidades (leccion de la Fase 7.4).
+- name: Purgar kernels que no estan en uso (imagen, modulos y cabeceras de cada version vieja)
+  vars:
+    patching_en_uso: "linux-image-{{ patching_uname.stdout }}"
+    patching_viejos: "{{ patching_kernels.stdout_lines | reject('equalto', patching_en_uso) | list }}"
+    patching_versiones: "{{ patching_viejos | map('regex_replace', '^linux-image-(\\d+\\.\\d+\\.\\d+-\\d+).*$', '\\1') | list }}"
+  ansible.builtin.shell: |
+    set -o pipefail
+    paquetes=$(dpkg-query -W -f='${Package} ${Status}\n' | awk '/install ok installed/{print $1}' \
+               | grep -E -- '-({{ patching_versiones | join("|") }})(-generic)?$' || true)
+    [ -z "$paquetes" ] && exit 0
+    DEBIAN_FRONTEND=noninteractive apt-get purge -y -q $paquetes >/dev/null
+    echo "purgados: $paquetes"
+  args:
+    executable: /bin/bash
+  register: patching_purga
+  changed_when: "'purgados' in patching_purga.stdout"
+  when:
+    - patching_viejos | length > 0
+    - (patching_kernels.stdout_lines | sort | last) == patching_en_uso
+
+- name: Limpiar dependencias sobrantes
+  ansible.builtin.apt:
+    autoremove: true
+    purge: true
+
+# Ningun modulo da la lista de unidades en "failed" (incluidos sockets y timers): por eso systemctl
+- name: Unidades caidas tras el parcheo  # noqa: command-instead-of-module
+  ansible.builtin.command: systemctl --failed --no-legend --plain
+  register: patching_failed
+  changed_when: false
+  failed_when: patching_failed.stdout | length > 0
+  check_mode: false
+
+- name: Estado de los servicios
+  ansible.builtin.service_facts:
+
+- name: Servicios de este servidor en marcha
+  ansible.builtin.assert:
+    that: ansible_facts.services[item ~ '.service'].state | default('ausente') == 'running'
+    fail_msg: "{{ item }} no esta en marcha tras el parcheo"
+    quiet: true
+  loop: "{{ patching_services }}"

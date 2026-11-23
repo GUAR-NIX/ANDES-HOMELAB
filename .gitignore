@@ -1,0 +1,12 @@
+# Nunca en Git: secretos en claro, estado de Terraform, temporales
+.secrets/
+*.pem.key
+*.key
+vault-pass*
+.env
+*.tfstate
+*.tfstate.*
+.terraform/
+tfplan
+*.retry
+__pycache__/

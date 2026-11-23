@@ -1,0 +1,180 @@
+---
+# Rol hardening: linea base de seguridad (harden.sh + harden2.sh + cis-fix.sh de las fases 4 y 7)
+- name: Paquetes de seguridad
+  ansible.builtin.apt:
+    name: [fail2ban, libpam-tmpdir, apt-listchanges, debsums, apt-show-versions, acct, sysstat, rkhunter]
+    state: present
+
+- name: Sin snapd
+  ansible.builtin.apt:
+    name: snapd
+    state: absent
+    purge: true
+
+- name: Carpetas de destino
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop: [/etc/systemd/journald.conf.d, /etc/fail2ban/jail.d]
+
+- name: Archivos de la linea base
+  ansible.builtin.copy:
+    src: "{{ item.path | regex_replace('^/', '') }}"
+    dest: "{{ item.path }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  loop: "{{ hardening_files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  notify: "{{ item.notify | default([]) }}"
+
+- name: Banner local igual al remoto
+  ansible.builtin.copy:
+    src: etc/issue.net
+    dest: /etc/issue
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Registro propio de sudo (validado con visudo)
+  ansible.builtin.copy:
+    src: etc/sudoers.d/60-cis-log
+    dest: /etc/sudoers.d/60-cis-log
+    owner: root
+    group: root
+    mode: "0440"
+    validate: visudo -cf %s
+
+- name: CIS 35659 exige PermitRootLogin no tambien en el archivo principal
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PermitRootLogin '
+    line: PermitRootLogin no
+    owner: root
+    group: root
+    mode: "0600"
+  notify: Validar y recargar SSH
+
+# INC-0001 accion 3 / revision de accesos 2026-T4: cloud-init deja en root una clave con command="echo ...";
+# root no entra por SSH (PermitRootLogin no), asi que no debe tener ninguna clave autorizada
+- name: Root sin claves SSH autorizadas
+  ansible.builtin.file:
+    path: /root/.ssh/authorized_keys
+    state: absent
+
+# Claves retiradas (por su comentario): la de la plantilla 9000, cuya privada esta en /root de PVE01
+- name: Claves retiradas de labadmin
+  ansible.builtin.lineinfile:
+    path: /home/labadmin/.ssh/authorized_keys
+    regexp: '\s{{ item }}$'
+    state: absent
+  loop: "{{ hardening_ssh_claves_retiradas }}"
+
+- name: Politica de contrasenas locales (login.defs)  # noqa: no-tabs (login.defs separa con tabuladores)
+  ansible.builtin.lineinfile:
+    path: /etc/login.defs
+    regexp: "^{{ item.key }}\\s"
+    line: "{{ item.key }}{{ item.sep }}{{ item.value }}"
+  loop:
+    - { key: UMASK, sep: "\t\t", value: "027" }
+    - { key: PASS_MAX_DAYS, sep: "\t", value: "365" }
+    - { key: PASS_MIN_DAYS, sep: "\t", value: "1" }
+    - { key: SHA_CRYPT_MIN_ROUNDS, sep: " ", value: "5000" }
+    - { key: SHA_CRYPT_MAX_ROUNDS, sep: " ", value: "10000" }
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: UFW aplica su propio sysctl al arrancar; log_martians tambien ahi
+  ansible.builtin.replace:
+    path: /etc/ufw/sysctl.conf
+    regexp: '^(net/ipv4/conf/(all|default)/log_martians)=0'
+    replace: '\1=1'
+
+- name: Permisos de cron (CIS 35594-35599)
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  loop:
+    - { path: /etc/crontab, mode: "0600" }
+    - { path: /etc/cron.hourly, mode: "0700" }
+    - { path: /etc/cron.daily, mode: "0700" }
+    - { path: /etc/cron.weekly, mode: "0700" }
+    - { path: /etc/cron.monthly, mode: "0700" }
+    - { path: /etc/cron.d, mode: "0700" }
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: Crontab y at solo para root (CIS 35600/35601)
+  ansible.builtin.copy:
+    dest: "{{ item.path }}"
+    content: "root\n"
+    owner: root
+    group: "{{ item.group }}"
+    mode: "0640"
+    force: false
+  loop:
+    - { path: /etc/cron.allow, group: root }
+    - { path: /etc/at.allow, group: daemon }
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: Umask 0027 para root (CIS 35703)
+  ansible.builtin.lineinfile:
+    path: "{{ item }}"
+    line: umask 0027
+    create: true
+    owner: root
+    group: root
+    mode: "{{ '0640' if item.endswith('bash_profile') else '0644' }}"
+  loop: [/root/.bashrc, /root/.bash_profile]
+
+- name: Reporte automatico de errores (apport) desactivado
+  ansible.builtin.systemd_service:
+    name: apport
+    enabled: false
+    state: stopped
+  failed_when: false
+
+- name: Servicio rsync sin uso, enmascarado
+  ansible.builtin.systemd_service:
+    name: rsync
+    masked: true
+  failed_when: false
+
+- name: Servicios de seguridad activos
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop: [auditd, fail2ban, sysstat, acct]
+
+- name: UFW - entrada denegada por defecto
+  community.general.ufw:
+    direction: incoming
+    default: deny
+
+- name: UFW - salida permitida por defecto
+  community.general.ufw:
+    direction: outgoing
+    default: allow
+
+- name: UFW - reglas de entrada
+  community.general.ufw:
+    rule: allow
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+    from_ip: "{{ item.from }}"
+    comment: "{{ item.comment }}"
+  loop: "{{ hardening_ufw_base_rules + hardening_ufw_extra_rules }}"
+  loop_control:
+    label: "{{ item.port }}/{{ item.proto }} desde {{ item.from }}"
+
+- name: UFW activo
+  community.general.ufw:
+    state: enabled

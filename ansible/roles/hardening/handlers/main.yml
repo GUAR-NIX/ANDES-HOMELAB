@@ -1,0 +1,22 @@
+---
+- name: Validar y recargar SSH
+  ansible.builtin.shell: sshd -t && systemctl reload ssh
+  changed_when: true
+
+- name: Aplicar sysctl
+  ansible.builtin.command: sysctl --system
+  changed_when: true
+
+- name: Recargar reglas de auditd
+  ansible.builtin.command: augenrules --load
+  changed_when: true
+
+- name: Reiniciar journald
+  ansible.builtin.systemd_service:
+    name: systemd-journald
+    state: restarted
+
+- name: Reiniciar fail2ban
+  ansible.builtin.systemd_service:
+    name: fail2ban
+    state: restarted

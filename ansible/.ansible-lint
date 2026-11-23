@@ -1,0 +1,5 @@
+---
+# Perfil mas estricto; el Vault no se puede descifrar en CI (no tiene la contrasena)
+profile: production
+exclude_paths:
+  - group_vars/all/vault.yml

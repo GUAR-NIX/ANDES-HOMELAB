@@ -1,0 +1,35 @@
+groups:
+  - name: andes
+    rules:
+      - alert: HostCaido
+        expr: up{job=~"node|windows|pve01"} == 0
+        for: 2m
+        labels: { severity: critical }
+        annotations: { summary: "{{ $labels.instance }} no responde" }
+      - alert: CapacidadThinPool
+        expr: andes_pve_thinpool_percent{tipo="datos"} > 85
+        for: 15m
+        labels: { severity: warning }
+        annotations:
+          summary: "local-lvm de PVE01 al {{ $value | humanize }} % (RB-04: snapshots, discos, ampliar)"
+      - alert: CapacidadRamPVE01
+        expr: node_memory_MemAvailable_bytes{job="pve01"} / node_memory_MemTotal_bytes{job="pve01"} < 0.10
+        for: 15m
+        labels: { severity: warning }
+        annotations:
+          summary: "PVE01 con menos del 10 % de RAM disponible (perfil de encendido, docs/operacion/capacidad.md)"
+      - alert: DiscoCasiLleno
+        expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes) < 0.15
+        for: 10m
+        labels: { severity: warning }
+        annotations: { summary: "{{ $labels.instance }} {{ $labels.mountpoint }} con menos del 15% libre" }
+      - alert: WebNoDisponible
+        expr: probe_success{job="blackbox-https"} == 0
+        for: 1m
+        labels: { severity: critical }
+        annotations: { summary: "{{ $labels.instance }} no responde por HTTPS" }
+      - alert: CertificadoPorCaducar
+        expr: (probe_ssl_earliest_cert_expiry - time()) / 86400 < 21
+        for: 1h
+        labels: { severity: warning }
+        annotations: { summary: "El certificado de {{ $labels.instance }} caduca en menos de 21 dias" }

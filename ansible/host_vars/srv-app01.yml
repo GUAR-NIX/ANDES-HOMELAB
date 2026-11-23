@@ -1,0 +1,7 @@
+---
+hardening_ufw_extra_rules:
+  - { port: "8080", proto: tcp, from: 10.10.50.10, comment: "App desde proxy DMZ" }
+  - { port: "9100", proto: tcp, from: 10.10.10.20, comment: "Metricas a MON01" }
+
+# Parcheo (rol patching, RB-03)
+patching_services: [docker, sssd, wazuh-agent, prometheus-node-exporter]

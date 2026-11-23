@@ -1,0 +1,8 @@
+[Unit]
+Description=Andes - ventana diaria de copias (SIEM fuera, PBS dentro, copia y vuelta)
+After=pve-guests.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/andes-ventana-backup.sh
+TimeoutStartSec=3h

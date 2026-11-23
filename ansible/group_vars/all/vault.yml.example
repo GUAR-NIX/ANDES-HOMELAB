@@ -1,0 +1,16 @@
+# Plantilla de los secretos de Ansible Vault (valores de ejemplo).
+# En el entorno real este archivo se llama vault.yml y va cifrado:
+#   cp vault.yml.example vault.yml && ansible-vault encrypt vault.yml
+# La contraseña de Vault vive fuera del repositorio (ver vault_password_file en ansible.cfg).
+
+# Cuenta de servicio delegada para unir los Linux al dominio (OU=Servidores/Linux)
+vault_ad_join_password: "CAMBIAR-contraseña-de-svc-adjoin"
+
+# Contraseña de PostgreSQL de la aplicación Andes (contenedor andes-app)
+vault_andes_db_password: "CAMBIAR-contraseña-de-la-base-de-datos"
+
+# Clave privada TLS del proxy de la DMZ (srv-web01), emitida por la CA interna
+vault_web_tls_key: |
+  -----BEGIN PRIVATE KEY-----
+  (clave privada PEM de srv-web01 aquí)
+  -----END PRIVATE KEY-----
