@@ -1,6 +1,6 @@
 # Bitácora de implementación (Fases 0 a 11)
 
-**[📄 Abrir la bitácora (PDF, 185 páginas)](Bitacora_Andes_Fase0-11.pdf)**
+**[📄 Abrir la bitácora en PDF](../../BITACORA-PASO-A-PASO.pdf)** · **[📝 Descargar en Word](../../BITACORA-PASO-A-PASO.docx)** (185 páginas)
 
 Es el diario de obra del proyecto: cada paso, en el orden en que se hizo, con **434 capturas de pantalla**, los comandos
 ejecutados, los errores que aparecieron y cómo se resolvieron. Es la evidencia de que todo lo que se cuenta en el

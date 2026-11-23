@@ -2,6 +2,10 @@
 
 **Autor: Erick Guarnizo** · Infraestructura · Ciberseguridad · DevOps
 
+> 📘 **Bitácora paso a paso** — todo el proceso de construcción en 185 páginas y 434 capturas de pantalla:
+> **[Ver en PDF](BITACORA-PASO-A-PASO.pdf)** · **[Descargar en Word](BITACORA-PASO-A-PASO.docx)**
+> (las credenciales aparecen tapadas; [qué se ocultó y por qué](docs/bitacora/README.md)).
+
 Red segmentada, Active Directory, PKI propia, infraestructura como código, CI/CD, observabilidad, SIEM y recuperación
 ante desastres de una empresa ficticia (**Andes Logística**, dominio `corp.lab.internal`), desplegados y operados en un
 portátil con Proxmox VE anidado en VMware Workstation. Todo lo que se puede automatizar está en este repositorio; todo
@@ -36,7 +40,7 @@ partir de código), se **ataca** (se simula un incidente y se mide cuánto tarda
 | Las copias de seguridad funcionan de verdad | **6 de 6** simulacros de recuperación superados |
 
 Explicación completa, fase por fase y con los problemas reales que hubo que resolver: **[Guía del proyecto](docs/GUIA-DEL-PROYECTO.md)**.
-Todo el paso a paso con 434 capturas de pantalla: **[Bitácora de implementación (PDF, 185 páginas)](docs/bitacora/README.md)**.
+Todo el paso a paso con 434 capturas de pantalla: **[Bitácora de implementación (PDF, 185 páginas)](BITACORA-PASO-A-PASO.pdf)**.
 ¿Algún término no te suena? **[Glosario](docs/GLOSARIO.md)**.
 
 ---
@@ -175,6 +179,7 @@ qué se cambió para que no vuelvan a pasar (detalle en la [guía](docs/GUIA-DEL
 
 ```
 .
+├── BITACORA-PASO-A-PASO.pdf / .docx   El proceso completo: 185 páginas y 434 capturas
 ├── terraform/          Máquinas virtuales declaradas como código (Proxmox)
 ├── ansible/            Configuración de los servidores en 9 roles + playbooks
 │   ├── roles/          hardening, ad_member, andes_app, nginx_proxy, wazuh_agent, node_exporter, patching…
@@ -188,7 +193,7 @@ qué se cambió para que no vuelvan a pasar (detalle en la [guía](docs/GUIA-DEL
 └── docs/
     ├── GUIA-DEL-PROYECTO.md   La historia completa, fase por fase
     ├── GLOSARIO.md            Términos técnicos explicados
-    ├── bitacora/       Bitácora completa en PDF: 185 páginas y 434 capturas del paso a paso
+    ├── bitacora/       Qué se ocultó en la bitácora pública y por qué
     ├── adr/            Por qué se tomó cada decisión de diseño
     ├── runbooks/       Cómo se hace cada tarea, paso a paso
     ├── cambios/        Registro de los 19 cambios realizados

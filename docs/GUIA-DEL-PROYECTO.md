@@ -1,6 +1,6 @@
 # Guía del proyecto Andes: de un portátil vacío a una empresa operada como código
 
-**Autor: Erick Guarnizo** · [Volver al README](../README.md) · [Glosario](GLOSARIO.md) · [Bitácora con capturas (PDF)](bitacora/README.md)
+**Autor: Erick Guarnizo** · [Volver al README](../README.md) · [Glosario](GLOSARIO.md) · [Bitácora con capturas (PDF)](../BITACORA-PASO-A-PASO.pdf)
 
 Esta guía cuenta el proyecto completo en el orden en que se construyó. Para cada fase explica **qué problema de una
 empresa resuelve**, **qué se hizo**, **qué decisiones se tomaron y por qué**, **qué salió mal y cómo se arregló**, y
