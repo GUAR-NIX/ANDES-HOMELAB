@@ -36,6 +36,7 @@ partir de código), se **ataca** (se simula un incidente y se mide cuánto tarda
 | Las copias de seguridad funcionan de verdad | **6 de 6** simulacros de recuperación superados |
 
 Explicación completa, fase por fase y con los problemas reales que hubo que resolver: **[Guía del proyecto](docs/GUIA-DEL-PROYECTO.md)**.
+Todo el paso a paso con 434 capturas de pantalla: **[Bitácora de implementación (PDF, 185 páginas)](docs/bitacora/README.md)**.
 ¿Algún término no te suena? **[Glosario](docs/GLOSARIO.md)**.
 
 ---
@@ -187,6 +188,7 @@ qué se cambió para que no vuelvan a pasar (detalle en la [guía](docs/GUIA-DEL
 └── docs/
     ├── GUIA-DEL-PROYECTO.md   La historia completa, fase por fase
     ├── GLOSARIO.md            Términos técnicos explicados
+    ├── bitacora/       Bitácora completa en PDF: 185 páginas y 434 capturas del paso a paso
     ├── adr/            Por qué se tomó cada decisión de diseño
     ├── runbooks/       Cómo se hace cada tarea, paso a paso
     ├── cambios/        Registro de los 19 cambios realizados
