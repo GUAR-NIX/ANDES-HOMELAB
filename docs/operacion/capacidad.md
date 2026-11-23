@@ -31,7 +31,7 @@ Se revisa una vez al mes y se anota aquí.
 |---|---|---|
 | Perfiles de encendido (ya en uso: PBS y test-users fuera de horario) | 2-3 GB | Gestión; ya automatizado para PBS |
 | Ballooning en VM sin estado crítico (MON01) | ~0,5 GB | Lección de la Fase 7: nunca en el SIEM ni en bases de datos |
-| Subir PVE01 de 20 a 22 GB | 2 GB | Windows queda con ~9 GB: límite indicado en el plan |
+| Subir PVE01 de 20 a 22 GB | 2 GB | Windows queda con ~9 GB: límite razonable para el anfitrión |
 | Ampliar el disco virtual de PVE01 y el thin pool | Disco | Sencillo (VMware + `lvextend`); no resuelve la RAM |
 | Segundo anfitrión o equipo dedicado | Todo, y alta disponibilidad | Hardware: es el paso natural si el laboratorio crece |
 

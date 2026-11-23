@@ -5,7 +5,7 @@
 | Aceptada | 2026-11-22 | 9 |
 
 ## Contexto
-El plan propone el plugin `os-git-backup` para versionar cada cambio del firewall en un repositorio. Pero `config.xml`
+La opción habitual es el plugin `os-git-backup` para versionar cada cambio del firewall en un repositorio. Pero `config.xml`
 contiene secretos: la clave privada de Andes-Root-CA (ADR-0006), las claves de WireGuard y hashes de contraseñas.
 
 ## Decisión
