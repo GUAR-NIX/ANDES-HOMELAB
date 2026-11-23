@@ -2,6 +2,9 @@
 
 Objetivo: que otra persona pueda operar el laboratorio leyendo estos documentos.
 
+¿Primera vez aquí? Empieza por la **[Guía del proyecto](GUIA-DEL-PROYECTO.md)** (la historia completa, fase por fase)
+y ten a mano el **[Glosario](GLOSARIO.md)**.
+
 | Carpeta | Contenido |
 |---|---|
 | [adr/](adr/README.md) | Decisiones de arquitectura: por qué el diseño es como es |
