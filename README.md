@@ -3,7 +3,7 @@
 **Autor: Erick Guarnizo** · Infraestructura · Ciberseguridad · DevOps
 
 > 📘 **Bitácora paso a paso** — todo el proceso de construcción en 185 páginas y 434 capturas de pantalla:
-> **[Ver en PDF](BITACORA-PASO-A-PASO.pdf)** · **[Descargar en Word](BITACORA-PASO-A-PASO.docx)**
+> **[Ver la bitácora (PDF)](BITACORA-PASO-A-PASO.pdf)**
 > (las credenciales aparecen tapadas; [qué se ocultó y por qué](docs/bitacora/README.md)).
 
 Red segmentada, Active Directory, PKI propia, infraestructura como código, CI/CD, observabilidad, SIEM y recuperación
@@ -179,7 +179,7 @@ qué se cambió para que no vuelvan a pasar (detalle en la [guía](docs/GUIA-DEL
 
 ```
 .
-├── BITACORA-PASO-A-PASO.pdf / .docx   El proceso completo: 185 páginas y 434 capturas
+├── BITACORA-PASO-A-PASO.pdf   El proceso completo: 185 páginas y 434 capturas
 ├── terraform/          Máquinas virtuales declaradas como código (Proxmox)
 ├── ansible/            Configuración de los servidores en 9 roles + playbooks
 │   ├── roles/          hardening, ad_member, andes_app, nginx_proxy, wazuh_agent, node_exporter, patching…
