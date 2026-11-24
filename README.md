@@ -1,76 +1,137 @@
-🇪🇸 **Español** · 🇬🇧 [English](README.en.md)
+🇺🇸 **English** · 🇪🇸 [Español](README.es.md)
 
-# Andes · infraestructura empresarial completa en una sola PC
+# Andes Homelab · company infrastructure built, automated and recovered on one laptop
 
-**Autor: Erick Guarnizo** · Infraestructura · Ciberseguridad · DevOps
+[![CI](https://github.com/GUAR-NIX/ANDES-HOMELAB/actions/workflows/ci.yml/badge.svg)](https://github.com/GUAR-NIX/ANDES-HOMELAB/actions/workflows/ci.yml)
 
-[![Ver el video de demostración (3:26)](https://img.youtube.com/vi/rV9RyCcJ3Nk/hqdefault.jpg)](https://youtu.be/rV9RyCcJ3Nk)
+Segmented network, Active Directory, own PKI, infrastructure as code, CI/CD, observability, SIEM and disaster recovery for
+a fictional company (**Andes Logística**, domain `corp.lab.internal`), run on a laptop with Proxmox VE nested inside VMware
+Workstation. **This is a lab**, not a production environment: private addresses, internal domain and evaluation licenses.
 
-> 🎬 **[Video de demostración (3:26)](https://youtu.be/rV9RyCcJ3Nk)**: la plataforma funcionando, de la infraestructura
-> como código a la detección de un ataque y la recuperación ante desastres, con los resultados medidos.
-
-> 📘 **Bitácora paso a paso** — todo el proceso de construcción en 185 páginas y 434 capturas de pantalla:
-> **[Ver la bitácora (PDF)](BITACORA-PASO-A-PASO.pdf)**
-> (las credenciales aparecen tapadas; [qué se ocultó y por qué](docs/bitacora/README.md)).
-
-Red segmentada, Active Directory, PKI propia, infraestructura como código, CI/CD, observabilidad, SIEM y recuperación
-ante desastres de una empresa ficticia (**Andes Logística**, dominio `corp.lab.internal`), desplegados y operados en un
-portátil con Proxmox VE anidado en VMware Workstation. Todo lo que se puede automatizar está en este repositorio; todo
-lo que se afirma aquí se midió.
-
-> Entorno de **laboratorio**: direcciones privadas, dominio interno y licencias de evaluación. No es una guía de producción.
-
-> **Versión pública.** Es el mismo código y la misma documentación que el repositorio de trabajo, sin historial y sin
-> los dos archivos cifrados con Ansible Vault (los secretos y la copia de OPNsense). Su estructura se documenta en
-> [vault.yml.example](ansible/group_vars/all/vault.yml.example) y [backups/opnsense](backups/opnsense/README.md).
-
----
-
-## En 30 segundos (para quien no es técnico)
-
-Imagina una empresa de logística con oficinas, empleados, una página web para sus clientes y datos que proteger.
-Necesita una **red** que separe a los empleados de los servidores, **cuentas de usuario** centralizadas, una
-**aplicación web** publicada en Internet, alguien que **vigile** que todo funciona, un sistema que **detecte ataques** y
-**copias de seguridad** por si algo sale mal.
-
-Este proyecto construye **todo eso desde cero**, como lo haría el departamento de TI de una empresa real, pero dentro
-de un solo portátil. Y no se queda en «instalarlo»: se **automatiza** (los servidores se crean y configuran solos a
-partir de código), se **ataca** (se simula un incidente y se mide cuánto tarda en detectarse) y se **rompe a propósito**
-(se destruyen servidores y se recuperan, cronometrando el tiempo).
-
-| Lo que se demostró | El dato medido |
-|---|---|
-| Un servidor destruido se reconstruye solo desde el código | **7 min 19 s**, sin pasos manuales |
-| Un cambio malicioso en la web se detecta | en **5 segundos** |
-| Las vulnerabilidades de los servidores se reducen | **−79 %** en un ciclo de parcheo de 1 h |
-| La seguridad de los servidores mejora (auditoría Lynis) | de **63 a 83** puntos |
-| Las copias de seguridad funcionan de verdad | **6 de 6** simulacros de recuperación superados |
-
-Explicación completa, fase por fase y con los problemas reales que hubo que resolver: **[Guía del proyecto](docs/GUIA-DEL-PROYECTO.md)**.
-Todo el paso a paso con 434 capturas de pantalla: **[Bitácora de implementación (PDF, 185 páginas)](BITACORA-PASO-A-PASO.pdf)**.
-¿Algún término no te suena? **[Glosario](docs/GLOSARIO.md)**.
-
----
-
-## La empresa ficticia: Andes Logística
-
-| Área | Qué necesita la empresa | Cómo se resolvió |
+| What was demonstrated | Measured | Evidence (Spanish) |
 |---|---|---|
-| Red | Que un equipo infectado de un empleado no llegue a los servidores | 6 redes separadas (VLAN) con un firewall entre ellas que lo bloquea todo salvo lo autorizado |
-| Acceso remoto | Que el administrador entre de forma segura | VPN WireGuard: es la **única** puerta de administración |
-| Usuarios | Una cuenta por empleado y permisos por departamento | Active Directory con grupos, políticas (GPO) y servidores Linux unidos al dominio |
-| Web para clientes | Publicar la aplicación sin exponer la base de datos | Aplicación en contenedores detrás de un proxy en una zona aislada (DMZ) con HTTPS |
-| Certificados | Que todas las conexiones internas vayan cifradas | Autoridad de certificación propia (raíz + emisora) |
-| Vigilancia | Saber que algo falla antes de que se quejen los clientes | Prometheus + Grafana con alertas a Telegram y un objetivo de disponibilidad del 99 % |
-| Seguridad | Detectar ataques y responder | SIEM Wazuh con reglas mapeadas a MITRE ATT&CK, incidente simulado con informe |
-| Continuidad | Sobrevivir a la pérdida de un servidor | Copias cifradas y verificadas cada noche en Proxmox Backup Server, regla 3-2-1, simulacros |
-| Orden | Que otra persona pueda operarlo | Decisiones documentadas (ADR), procedimientos (runbooks), gestión de cambios e inventario automático |
+| Server destroyed and rebuilt from Git with Terraform and Ansible | **7 min 19 s**, no manual steps | [ADR-0005](docs/adr/ADR-0005-terraform-bpg.md) |
+| Disaster recovery drills | **6 of 6** passed; VM restored in 5 min 19 s | [Drill log](docs/dr/resultados-simulacros.md) |
+| Vulnerabilities after one patching cycle | **−79%** (19,784 → 4,062) in 1 h 06 min | [Guide, phase 7](docs/GUIA-DEL-PROYECTO.md) |
+| Unauthorized web change, simulated incident | SIEM alert in **5 s**, service restored in 26 min | [INC-0001](docs/incidents/INC-0001.md) |
+| Server hardening (Lynis audit) | **63 → 83** | [Guide, phase 4](docs/GUIA-DEL-PROYECTO.md) |
 
-## Arquitectura
+## Start here
+
+| If you have… | Go to |
+|---|---|
+| **3 minutes** | [Demo video (3:26, in Spanish)](https://youtu.be/rV9RyCcJ3Nk) or [In 30 seconds](#in-30-seconds-for-non-technical-readers) |
+| **Interest in the code** | [Terraform](terraform) · [Ansible roles](ansible/roles) · [rebuild script](scripts/reconstruir-servidor.sh) |
+| **Interest in tests and CI** | [Workflow](.github/workflows/ci.yml): gitleaks, Terraform, ansible-lint, Trivy · [runs](https://github.com/GUAR-NIX/ANDES-HOMELAB/actions) |
+| **Interest in the design** | [Architecture](#architecture) · [8 decision records](docs/adr/README.md) · [diagrams](docs/diagramas/README.md) |
+| **Interest in operations** | [Runbooks](docs/runbooks/README.md) · [drill results](docs/dr/resultados-simulacros.md) · [incident report](docs/incidents/INC-0001.md) |
+| **Time for the whole story** | [Project guide](docs/GUIA-DEL-PROYECTO.md) · [build log, 185 pages and 434 screenshots](BITACORA-PASO-A-PASO.pdf) ([what was redacted and why](docs/bitacora/README.md)) |
+
+This page is in English; the linked documents (guide, ADRs, runbooks, reports) are in Spanish.
+
+> **Public version.** Same code and documentation as the working repository, without its history and without the two
+> files encrypted with Ansible Vault (the secrets and the OPNsense backup). Their structure is documented in
+> [vault.yml.example](ansible/group_vars/all/vault.yml.example) and [backups/opnsense](backups/opnsense/README.md).
+
+## My role
+
+Personal project by **Erick Guarnizo**, owned end to end: network and identity design, Terraform and Ansible code, CI,
+monitoring, detection rules, the simulated incident, the recovery drills and the documentation. There was no client, team
+or real user traffic. The workloads belong to a fictional company.
+
+## Key decisions
+
+| Decision | Why | Record |
+|---|---|---|
+| Deny by default between six VLANs, with 12 documented flows | A compromised user or DMZ host must not reach the servers | [ADR-0002](docs/adr/ADR-0002-seis-vlan.md) |
+| Import the existing VMs into Terraform instead of recreating them | Bring working servers under code without rebuilding them | [ADR-0005](docs/adr/ADR-0005-terraform-bpg.md) |
+| Terraform state outside Git, with a minimum-role API token | The state holds configuration and sensitive values | [ADR-0004](docs/adr/ADR-0004-estado-terraform.md) |
+| Two-tier PKI | If the issuing CA is compromised, the root of trust survives | [ADR-0006](docs/adr/ADR-0006-ca-intermedia.md) |
+| Encrypted firewall backup in Git instead of the usual plugin | The plugin stores the configuration, with keys, in clear text | [ADR-0008](docs/adr/ADR-0008-opnsense-xml-cifrado.md) |
+
+## Trade-offs
+
+- **Nested virtualization on one laptop:** it kept the laptop usable every day, at the cost of performance, high availability and a
+  20 GB memory budget ([ADR-0001](docs/adr/ADR-0001-proxmox-anidado.md)).
+- **Server Core for the domain controller:** fewer patches and less memory, but no graphical console
+  ([ADR-0003](docs/adr/ADR-0003-server-core.md)).
+- **Backups and SIEM take turns:** they do not fit in memory together, so the SIEM is off about 6 minutes a day
+  ([ADR-0007](docs/adr/ADR-0007-pbs-ventana-copias.md)).
+- **No off-site copy:** both backup copies share the physical disk; an accepted, documented risk.
+- **Rebuild or restore:** rebuilding gives a clean server but loses what is not in code; restoring is faster and keeps
+  everything, including a possible compromise ([comparison](docs/dr/resultados-simulacros.md)).
+
+## What failed
+
+- **The alert reached nobody.** The SIEM detected the change in 5 s, but no notification was sent, and availability monitoring
+  saw `200 OK`. Detection without paging is not response ([INC-0001](docs/incidents/INC-0001.md)).
+- **A rebuilt server was left out of the domain.** The AD join was manual. It became the [`ad_member`](ansible/roles/ad_member)
+  role with a delegated account, and the test was repeated.
+- **The recovery point was 12 h.** In drill DR-03, 5 of 10 test rows written after the last dump were lost, within the 24 h
+  objective.
+- **The vault password existed only inside the lab.** Drill DR-04 exposed it: if the firewall falls, it cannot be reached.
+- **DR-04 was a partial drill.** The firewall was restored and checked in isolation, without swapping the live one.
+
+More cases: [Real problems that had to be solved](#real-problems-that-had-to-be-solved).
+
+## How results were measured
+
+| Result | Method |
+|---|---|
+| Rebuild time | Elapsed time printed by the [rebuild script](scripts/reconstruir-servidor.sh); logged as change [CHG-0012](docs/cambios/README.md) |
+| Recovery drills | Timed against an objective per drill, only after the backup was verified; files compared by SHA-256 ([log](docs/dr/resultados-simulacros.md)) |
+| Detection and response | Event times in the SIEM and system logs, UTC timeline in [INC-0001](docs/incidents/INC-0001.md). One exercise, not an average |
+| Vulnerabilities | Vulnerability inventory in the SIEM before and after the patching change [CHG-7.4-01](docs/cambios/README.md) |
+| Hardening | Lynis and CIS Ubuntu 24.04 audits before and after ([guide, phase 4](docs/GUIA-DEL-PROYECTO.md)) |
+
+---
+
+## In 30 seconds (for non-technical readers)
+
+Imagine a logistics company with offices, employees, a website for its customers and data to protect. It needs a
+**network** that keeps employees away from the servers, centralized **user accounts**, a **web application** published to
+the Internet, someone **watching** that everything works, a system that **detects attacks**, and **backups** in case
+something goes wrong.
+
+This project builds **all of that from scratch**, the way the IT department of a real company would, but inside a single
+laptop. And it does not stop at "installing it": it is **automated** (servers are created and configured by themselves
+from code), **attacked** (an incident is simulated and the time to detect it is measured) and **broken on purpose**
+(servers are destroyed and recovered, against the clock).
+
+| What was demonstrated | Measured |
+|---|---|
+| A destroyed server rebuilds itself from code | **7 min 19 s**, no manual steps |
+| A malicious change on the website is detected | in **5 seconds** |
+| Server vulnerabilities are reduced | **−79%** in a 1-hour patching cycle |
+| Server security improves (Lynis audit) | from **63 to 83** points |
+| Backups really work | **6 out of 6** recovery drills passed |
+
+Full explanation, phase by phase, including the real problems that had to be solved:
+**[Project guide (Spanish)](docs/GUIA-DEL-PROYECTO.md)**. The whole process with 434 screenshots:
+**[Implementation log (PDF, 185 pages, Spanish)](BITACORA-PASO-A-PASO.pdf)**. Unfamiliar term?
+**[Glossary (Spanish)](docs/GLOSARIO.md)**.
+
+---
+
+## The fictional company: Andes Logística
+
+| Area | What the company needs | How it was solved |
+|---|---|---|
+| Network | An infected employee computer must not reach the servers | 6 separate networks (VLANs) with a firewall between them that blocks everything except what is authorized |
+| Remote access | The administrator must connect securely | WireGuard VPN: the **only** administration entry point |
+| Users | One account per employee and permissions by department | Active Directory with groups, policies (GPO) and Linux servers joined to the domain |
+| Customer website | Publish the application without exposing the database | Containerized application behind a proxy in an isolated zone (DMZ) with HTTPS |
+| Certificates | All internal connections must be encrypted | Own certificate authority (root + issuing) |
+| Monitoring | Know that something is failing before customers complain | Prometheus + Grafana with Telegram alerts and a 99% availability objective |
+| Security | Detect attacks and respond | Wazuh SIEM with rules mapped to MITRE ATT&CK, simulated incident with a report |
+| Continuity | Survive the loss of a server | Encrypted, verified nightly backups in Proxmox Backup Server, 3-2-1 rule, drills |
+| Order | Someone else must be able to operate it | Documented decisions (ADRs), procedures (runbooks), change management and automatic inventory |
+
+## Architecture
 
 ```mermaid
 flowchart LR
-  ADMIN["Administrador<br/>VPN WireGuard"] --> FW{{"OPNsense<br/>firewall · VPN · DNS · PKI"}}
+  ADMIN["Administrator<br/>WireGuard VPN"] --> FW{{"OPNsense<br/>firewall · VPN · DNS · PKI"}}
   FW --- MGMT & SERVERS & USERS & SEC & DMZ & BKP
   subgraph MGMT["VLAN 10 · MGMT"]
     ADM["ADM-ANS01<br/>Terraform · Ansible · git"]
@@ -81,13 +142,13 @@ flowchart LR
     APP["SRV-APP01<br/>Andes App + PostgreSQL"]
   end
   subgraph USERS["VLAN 30 · USERS"]
-    CLI["Equipos de usuario"]
+    CLI["User computers"]
   end
   subgraph SEC["VLAN 40 · SEC"]
     SIEM["SRV-SIEM01<br/>Wazuh"]
   end
   subgraph DMZ["VLAN 50 · DMZ"]
-    WEB["SRV-WEB01<br/>proxy TLS"]
+    WEB["SRV-WEB01<br/>TLS proxy"]
   end
   subgraph BKP["VLAN 60 · BKP"]
     PBS["SRV-PBS01<br/>Proxmox Backup Server"]
@@ -95,164 +156,156 @@ flowchart LR
   CLI -- HTTPS --> WEB -- 8080 --> APP
   ADM -. Terraform .-> PVE["PVE01<br/>Proxmox VE"]
   ADM -. Ansible .-> APP & WEB & MON & SIEM
-  PVE -- copias cifradas --> PBS
+  PVE -- encrypted backups --> PBS
 ```
 
-**Cómo leer el diagrama.** Todo vive dentro de un portátil con Windows 11: VMware ejecuta **Proxmox VE** (el
-hipervisor de la «empresa») y Proxmox ejecuta las 10 máquinas virtuales. El firewall **OPNsense** es el único camino
-entre redes. Cada red tiene un propósito:
+**How to read the diagram.** Everything lives inside a Windows 11 laptop: VMware runs **Proxmox VE** (the "company"
+hypervisor) and Proxmox runs the 10 virtual machines. The **OPNsense** firewall is the only path between networks. Each
+network has a purpose:
 
-| VLAN | Red | Para qué | Quién vive ahí |
+| VLAN | Network | Purpose | Who lives there |
 |---|---|---|---|
-| 10 MGMT | 10.10.10.0/24 | Administración: desde aquí se gestiona todo | ADM-ANS01 (Terraform, Ansible), MON01 (monitorización) |
-| 20 SERVERS | 10.10.20.0/24 | Servidores internos | DC01 (Active Directory), SRV-APP01 (aplicación + base de datos) |
-| 30 USERS | 10.10.30.0/24 | Equipos de los empleados | Clientes con DHCP |
-| 40 SEC | 10.10.40.0/24 | Seguridad, aislada del resto | SRV-SIEM01 (Wazuh) |
-| 50 DMZ | 10.10.50.0/24 | Lo que se publica hacia fuera | SRV-WEB01 (proxy HTTPS) |
-| 60 BKP | 10.10.60.0/24 | Copias de seguridad, lo más aislado | SRV-PBS01 (Proxmox Backup Server) |
+| 10 MGMT | 10.10.10.0/24 | Administration: everything is managed from here | ADM-ANS01 (Terraform, Ansible), MON01 (monitoring) |
+| 20 SERVERS | 10.10.20.0/24 | Internal servers | DC01 (Active Directory), SRV-APP01 (application + database) |
+| 30 USERS | 10.10.30.0/24 | Employee computers | DHCP clients |
+| 40 SEC | 10.10.40.0/24 | Security, isolated from the rest | SRV-SIEM01 (Wazuh) |
+| 50 DMZ | 10.10.50.0/24 | What is published to the outside | SRV-WEB01 (HTTPS proxy) |
+| 60 BKP | 10.10.60.0/24 | Backups, the most isolated | SRV-PBS01 (Proxmox Backup Server) |
 
-Regla de oro: **todo está bloqueado entre redes salvo 12 flujos documentados** (por ejemplo: «los empleados pueden
-abrir la web por HTTPS»). Si el servidor web de la DMZ es comprometido, no puede llegar al controlador de dominio:
-está probado. Más diagramas (flujos del firewall, dependencias, copias, flujo de cambios): [docs/diagramas](docs/diagramas/README.md).
+Golden rule: **everything is blocked between networks except 12 documented flows** (for example: "employees may open the
+website over HTTPS"). If the DMZ web server is compromised, it cannot reach the domain controller: this was tested. More
+diagrams (firewall flows, dependencies, backups, change flow): [docs/diagramas](docs/diagramas/README.md).
 
-## Cómo se construyó: 11 fases
+## How it was built: 11 phases
 
-Cada fase se apoya en la anterior. El detalle (objetivo, decisiones, problemas reales y resultado) está en la
-**[Guía del proyecto](docs/GUIA-DEL-PROYECTO.md)**.
+Each phase builds on the previous one. The detail (goal, decisions, real problems and result) is in the
+**[project guide](docs/GUIA-DEL-PROYECTO.md)**.
 
-| Fase | Qué se construyó | Resultado clave |
+| Phase | What was built | Key result |
 |---|---|---|
-| 0 · Anfitrión | Preparar el portátil para virtualización anidada | Proxmox puede ejecutar VM dentro de VMware |
-| 1 · Hipervisor | Proxmox VE 9 y plantilla Ubuntu con cloud-init | Un servidor nuevo listo en minutos |
-| 2 · Red | OPNsense, 6 VLAN, matriz de flujos, DNS y VPN | Denegación por defecto entre redes |
-| 3 · Identidad | Active Directory, GPO y Linux unidos al dominio | Un usuario, una contraseña, permisos por grupo |
-| 4 · Servidores | Linux endurecidos y PKI interna | Lynis 63 → 83, TLS en todos los servicios |
-| 5 · Aplicaciones | App en Docker + proxy en la DMZ | Contenedores sin root, imagen escaneada |
-| 6 · Observabilidad | Métricas, alertas y SLO | Alertas a Telegram, SLO del 99 % |
-| 7 · Seguridad defensiva | SIEM, vulnerabilidades e incidente simulado | Detección en 5 s, vulnerabilidades −79 % |
-| 8 · Automatización | Terraform, Ansible y CI en GitHub Actions | Servidor reconstruido desde git en 7 min 19 s |
-| 9 · Copias y DR | Proxmox Backup Server y simulacros | 6/6 simulacros superados |
-| 10 · Operación | Runbooks, cambios, inventario y rutinas | Revisiones automáticas con informe en git |
-| 11 · Publicación | Revisión de secretos, README y vídeo | Este repositorio, auditado con gitleaks |
+| 0 · Host | Prepare the laptop for nested virtualization | Proxmox can run VMs inside VMware |
+| 1 · Hypervisor | Proxmox VE 9 and an Ubuntu template with cloud-init | A new server ready in minutes |
+| 2 · Network | OPNsense, 6 VLANs, flow matrix, DNS and VPN | Deny by default between networks |
+| 3 · Identity | Active Directory, GPO and Linux joined to the domain | One user, one password, permissions by group |
+| 4 · Servers | Hardened Linux and internal PKI | Lynis 63 → 83, TLS on every service |
+| 5 · Applications | Dockerized app + proxy in the DMZ | Rootless containers, scanned image |
+| 6 · Observability | Metrics, alerts and SLO | Telegram alerts, 99% SLO |
+| 7 · Defensive security | SIEM, vulnerabilities and simulated incident | Detection in 5 s, vulnerabilities −79% |
+| 8 · Automation | Terraform, Ansible and CI in GitHub Actions | Server rebuilt from git in 7 min 19 s |
+| 9 · Backups and DR | Proxmox Backup Server and drills | 6/6 drills passed |
+| 10 · Operations | Runbooks, changes, inventory and routines | Automatic reviews with reports in git |
+| 11 · Publication | Secrets review, README and video | This repository, audited with gitleaks |
 
-## Resultados medidos
+## Measured results
 
-| Área | Resultado |
+| Area | Result |
 |---|---|
-| Infraestructura | 10 VM en Proxmox, 6 VLAN y 12 flujos de firewall documentados; denegación por defecto entre segmentos |
-| Infraestructura como código | Servidor destruido y reconstruido desde git en **7 min 19 s** sin pasos manuales; VM nueva en 2 min 31 s; segunda pasada de Ansible con `changed=0` |
-| CI/CD | gitleaks (historial completo), Terraform, ansible-lint (perfil *production*), Trivy y publicación de la imagen de la app en GHCR; actions fijadas por SHA |
-| Endurecimiento | Lynis 63 → **83**; CIS Ubuntu 24.04 de 53 % a **63 %**; SSH solo con clave y solo desde la red de gestión y la VPN |
-| Vulnerabilidades | **−79 %** en total (19.784 → 4.062), críticas **−89 %**, altas −83 % en un ciclo de parcheo de 1 h 06 min |
-| Detección | Wazuh con 6 casos de uso mapeados a MITRE ATT&CK y 2 reglas propias; incidente simulado con **MTTD 5 s** y MTTR 26 min |
-| Observabilidad | Prometheus, Grafana y Alertmanager; SLO de disponibilidad del 99 % con informe semanal |
-| Recuperación ante desastres | 6 simulacros superados: VM restaurada en **5 min 19 s**, servidor reconstruido + base de datos en 7 min 11 s (RPO 12 h), firewall en 3 min 38 s, usuario de AD en 0,05 s, copia corrupta detectada y reparada |
-| Operación | Parcheo con Ansible, revisión semanal y de accesos automáticas con informe en git, capacidad del hipervisor en Grafana |
+| Infrastructure | 10 VMs on Proxmox, 6 VLANs and 12 documented firewall flows; deny by default between segments |
+| Infrastructure as code | Server destroyed and rebuilt from git in **7 min 19 s** with no manual steps; new VM in 2 min 31 s; second Ansible run with `changed=0` |
+| CI/CD | gitleaks (full history), Terraform, ansible-lint (*production* profile), Trivy and publication of the app image to GHCR; actions pinned by SHA |
+| Hardening | Lynis 63 → **83**; CIS Ubuntu 24.04 from 53% to **63%**; SSH with keys only, and only from the management network and the VPN |
+| Vulnerabilities | **−79%** overall (19,784 → 4,062), critical **−89%**, high −83% in a 1 h 06 min patching cycle |
+| Detection | Wazuh with 6 use cases mapped to MITRE ATT&CK and 2 custom rules; simulated incident with **MTTD 5 s** and MTTR 26 min |
+| Observability | Prometheus, Grafana and Alertmanager; 99% availability SLO with a weekly report |
+| Disaster recovery | 6 drills passed: VM restored in **5 min 19 s**, server rebuilt + database in 7 min 11 s (RPO 12 h), firewall in 3 min 38 s, AD user in 0.05 s, corrupt backup detected and repaired |
+| Operations | Patching with Ansible, automatic weekly and access reviews with reports in git, hypervisor capacity in Grafana |
 
-Detalle de cada medida: [docs/dr/resultados-simulacros.md](docs/dr/resultados-simulacros.md), [docs/incidents/INC-0001.md](docs/incidents/INC-0001.md), [docs/operacion](docs/operacion/README.md).
+Detail of each measurement: [docs/dr/resultados-simulacros.md](docs/dr/resultados-simulacros.md),
+[docs/incidents/INC-0001.md](docs/incidents/INC-0001.md), [docs/operacion](docs/operacion/README.md).
 
-## Problemas reales que hubo que resolver
+## Real problems that had to be solved
 
-Un laboratorio que «sale a la primera» no enseña mucho. Estos son algunos problemas reales, cómo se diagnosticaron y
-qué se cambió para que no vuelvan a pasar (detalle en la [guía](docs/GUIA-DEL-PROYECTO.md)):
+A lab that "works the first time" does not teach much. These are some real problems, how they were diagnosed and what
+was changed so they do not happen again (detail in the [guide](docs/GUIA-DEL-PROYECTO.md)):
 
-| Problema | Causa | Solución permanente |
+| Problem | Cause | Permanent fix |
 |---|---|---|
-| El SIEM se quedaba sin memoria | El *ballooning* de Proxmox le quitaba RAM a Wazuh | Memoria fija para el SIEM y perfiles de encendido |
-| Tras un apagón, la VPN y los certificados fallaban | Todos los relojes del laboratorio iban 2 h 46 min atrasados | Procedimiento de resincronización (Proxmox, OPNsense, DC01) documentado como cambio de emergencia |
-| Al reconstruir un servidor desde código, quedó fuera del dominio | La unión a Active Directory se había hecho a mano | Nuevo rol de Ansible `ad_member` con una cuenta delegada de mínimo privilegio |
-| El hipervisor dejó de arrancar al añadir un disco | La BIOS cambió el orden de arranque | Orden de arranque fijado y aviso en el script que añade discos |
-| El parcheo dejaba servicios «caídos» | Un paquete recomendado (`ipmitool`) instalaba un servicio sin hardware | El rol de parcheo lo purga y verifica 0 unidades caídas |
-| No cabían el SIEM y el servidor de copias a la vez | 20 GB de RAM para 10 VM | Ventana diaria de copias a las 22:00: el SIEM se apaga, se copia todo y vuelve a arrancar |
+| The SIEM kept running out of memory | Proxmox *ballooning* was taking RAM away from Wazuh | Fixed memory for the SIEM and power-on profiles |
+| After a power cut, the VPN and certificates failed | Every clock in the lab was 2 h 46 min behind | Resync procedure (Proxmox, OPNsense, DC01) documented as an emergency change |
+| A server rebuilt from code was left out of the domain | Joining Active Directory had been done by hand | New `ad_member` Ansible role with a least-privilege delegated account |
+| The hypervisor stopped booting after adding a disk | The BIOS changed the boot order | Boot order pinned and a warning in the script that adds disks |
+| Patching left services "down" | A recommended package (`ipmitool`) installed a service without hardware | The patching role purges it and verifies 0 failed units |
+| The SIEM and the backup server did not fit at the same time | 20 GB of RAM for 10 VMs | Daily backup window at 22:00: the SIEM shuts down, everything is backed up and it starts again |
 
-## Qué hay y dónde
+## What is where
 
-| Competencia | Qué se hizo | Dónde |
+| Skill | What was done | Where |
 |---|---|---|
-| Virtualización | Proxmox VE 9 anidado, plantillas cloud-init, perfiles de encendido | [ADR-0001](docs/adr/ADR-0001-proxmox-anidado.md) |
-| Redes y seguridad perimetral | OPNsense, 6 VLAN, matriz de flujos, VPN WireGuard como única vía de administración | [ADR-0002](docs/adr/ADR-0002-seis-vlan.md) |
-| Identidad | AD en Windows Server Core, AGDLP, GPO, delegación, Linux unidos con SSSD/Kerberos | [ADR-0003](docs/adr/ADR-0003-server-core.md), [rol ad_member](ansible/roles/ad_member) |
-| PKI | CA raíz + emisora propias; TLS en todos los servicios internos | [ADR-0006](docs/adr/ADR-0006-ca-intermedia.md) |
-| Infraestructura como código | Terraform (bpg/proxmox) con importación de VM existentes; estado fuera de Git | [terraform/](terraform), [ADR-0004](docs/adr/ADR-0004-estado-terraform.md), [ADR-0005](docs/adr/ADR-0005-terraform-bpg.md) |
-| Gestión de configuración | Ansible: 9 roles idempotentes, secretos en Vault, reconstrucción en un comando | [ansible/](ansible), [scripts/reconstruir-servidor.sh](scripts/reconstruir-servidor.sh) |
-| CI/CD y seguridad de la cadena | GitHub Actions con gitleaks, lint, Trivy e imagen en GHCR | [.github/workflows/ci.yml](.github/workflows/ci.yml) |
-| Contenedores | Andes App (Flask + PostgreSQL) en Docker sin root, solo lectura, imagen escaneada | [rol andes_app](ansible/roles/andes_app) |
-| Observabilidad | Métricas, alertas a Telegram, SLO, capacidad del anfitrión | [monitoring/](monitoring), [docs/operacion/capacidad.md](docs/operacion/capacidad.md) |
-| SIEM y respuesta | Wazuh, FIM con who-data, respuesta activa, runbook y post-mortem | [RB-IR-01](docs/runbooks/RB-IR-01.md), [INC-0001](docs/incidents/INC-0001.md) |
-| Copias y continuidad | Proxmox Backup Server cifrado, regla 3-2-1, ventana diaria de copias, plan de continuidad | [docs/dr](docs/dr/plan-continuidad.md), [ADR-0007](docs/adr/ADR-0007-pbs-ventana-copias.md) |
-| Operación | ADR, runbooks, gestión de cambios, inventario automático, rutinas programadas | [docs/](docs/README.md) |
+| Virtualization | Nested Proxmox VE 9, cloud-init templates, power-on profiles | [ADR-0001](docs/adr/ADR-0001-proxmox-anidado.md) |
+| Networking and perimeter security | OPNsense, 6 VLANs, flow matrix, WireGuard VPN as the only administration path | [ADR-0002](docs/adr/ADR-0002-seis-vlan.md) |
+| Identity | AD on Windows Server Core, AGDLP, GPO, delegation, Linux joined with SSSD/Kerberos | [ADR-0003](docs/adr/ADR-0003-server-core.md), [ad_member role](ansible/roles/ad_member) |
+| PKI | Own root + issuing CA; TLS on every internal service | [ADR-0006](docs/adr/ADR-0006-ca-intermedia.md) |
+| Infrastructure as code | Terraform (bpg/proxmox) importing existing VMs; state outside Git | [terraform/](terraform), [ADR-0004](docs/adr/ADR-0004-estado-terraform.md), [ADR-0005](docs/adr/ADR-0005-terraform-bpg.md) |
+| Configuration management | Ansible: 9 idempotent roles, secrets in Vault, rebuild in one command | [ansible/](ansible), [scripts/reconstruir-servidor.sh](scripts/reconstruir-servidor.sh) |
+| CI/CD and supply chain security | GitHub Actions with gitleaks, lint, Trivy and image on GHCR | [.github/workflows/ci.yml](.github/workflows/ci.yml) |
+| Containers | Andes App (Flask + PostgreSQL) in rootless, read-only Docker, scanned image | [andes_app role](ansible/roles/andes_app) |
+| Observability | Metrics, Telegram alerts, SLO, host capacity | [monitoring/](monitoring), [docs/operacion/capacidad.md](docs/operacion/capacidad.md) |
+| SIEM and response | Wazuh, FIM with who-data, active response, runbook and post-mortem | [RB-IR-01](docs/runbooks/RB-IR-01.md), [INC-0001](docs/incidents/INC-0001.md) |
+| Backups and continuity | Encrypted Proxmox Backup Server, 3-2-1 rule, daily backup window, continuity plan | [docs/dr](docs/dr/plan-continuidad.md), [ADR-0007](docs/adr/ADR-0007-pbs-ventana-copias.md) |
+| Operations | ADRs, runbooks, change management, automatic inventory, scheduled routines | [docs/](docs/README.md) |
 
-## Mapa del repositorio
+## Repository map
 
 ```
 .
-├── BITACORA-PASO-A-PASO.pdf   El proceso completo: 185 páginas y 434 capturas
-├── terraform/          Máquinas virtuales declaradas como código (Proxmox)
-├── ansible/            Configuración de los servidores en 9 roles + playbooks
+├── BITACORA-PASO-A-PASO.pdf   The complete process: 185 pages and 434 screenshots (Spanish)
+├── terraform/          Virtual machines declared as code (Proxmox)
+├── ansible/            Server configuration in 9 roles + playbooks
 │   ├── roles/          hardening, ad_member, andes_app, nginx_proxy, wazuh_agent, node_exporter, patching…
-│   └── group_vars/     Variables (los secretos van cifrados con Vault; aquí, solo la plantilla)
-├── .github/workflows/  CI: gitleaks, Terraform, ansible-lint, Trivy y publicación de la imagen
-├── monitoring/         Prometheus (reglas, alertas, SLO) y paneles de Grafana
-├── scripts/            Reconstruir servidores, verificar servicios, inventario, revisiones automáticas, copias
-├── web/                Configuración del proxy de la DMZ
-├── baseline/           Línea base de configuración (fuente de verdad para responder a incidentes)
-├── backups/opnsense/   Copia cifrada del firewall (no incluida en la versión pública)
+│   └── group_vars/     Variables (secrets are encrypted with Vault; only the template is here)
+├── .github/workflows/  CI: gitleaks, Terraform, ansible-lint, Trivy and image publication
+├── monitoring/         Prometheus (rules, alerts, SLO) and Grafana dashboards
+├── scripts/            Rebuild servers, check services, inventory, automatic reviews, backups
+├── web/                DMZ proxy configuration
+├── baseline/           Configuration baseline (source of truth for incident response)
+├── backups/opnsense/   Encrypted firewall backup (not included in the public version)
 └── docs/
-    ├── GUIA-DEL-PROYECTO.md   La historia completa, fase por fase
-    ├── GLOSARIO.md            Términos técnicos explicados
-    ├── bitacora/       Qué se ocultó en la bitácora pública y por qué
-    ├── adr/            Por qué se tomó cada decisión de diseño
-    ├── runbooks/       Cómo se hace cada tarea, paso a paso
-    ├── cambios/        Registro de los 19 cambios realizados
-    ├── incidents/      Informe del incidente simulado
-    ├── dr/             Plan de continuidad y simulacros de recuperación
-    ├── diagramas/      Red, dependencias, copias y flujo de cambios
-    ├── operacion/      Rutinas, informes semanales, revisión de accesos, capacidad
-    └── inventario/     Inventario generado automáticamente
+    ├── GUIA-DEL-PROYECTO.md   The whole story, phase by phase
+    ├── GLOSARIO.md            Technical terms explained
+    ├── bitacora/       What was hidden in the public build log and why
+    ├── adr/            Why each design decision was made
+    ├── runbooks/       How each task is done, step by step
+    ├── cambios/        Log of the 19 changes made
+    ├── incidents/      Simulated incident report
+    ├── dr/             Continuity plan and recovery drills
+    ├── diagramas/      Network, dependencies, backups and change flow
+    ├── operacion/      Routines, weekly reports, access review, capacity
+    └── inventario/     Automatically generated inventory
 ```
 
-## Por dónde empezar a leer
+## How to reproduce it
 
-| Si eres… | Lee esto |
-|---|---|
-| **Reclutador o responsable de RR. HH.** | «En 30 segundos» (arriba) y la tabla de resultados medidos |
-| **Responsable técnico** | La [guía del proyecto](docs/GUIA-DEL-PROYECTO.md), las [ADR](docs/adr/README.md) y el [incidente INC-0001](docs/incidents/INC-0001.md) |
-| **Ingeniero que quiere ver código** | [ansible/roles](ansible/roles), [terraform](terraform), [ci.yml](.github/workflows/ci.yml) y [scripts/reconstruir-servidor.sh](scripts/reconstruir-servidor.sh) |
-| **Alguien que quiere replicarlo** | «Cómo reproducirlo» (abajo) y [docs/README.md](docs/README.md) |
+**Requirements:** a PC with 32 GB of RAM, a CPU with nested virtualization (AMD-V/VT-x), about 400 GB free and VMware
+Workstation. On Windows, memory integrity (HVCI) must be disabled so VMware can expose virtualization.
 
-## Cómo reproducirlo
-
-**Requisitos:** un PC con 32 GB de RAM, CPU con virtualización anidada (AMD-V/VT-x), unos 400 GB libres y VMware
-Workstation. En Windows hay que desactivar la integridad de memoria (HVCI) para que VMware exponga la virtualización.
-
-**Orden de construcción** (cada paso depende del anterior):
-1. Proxmox VE como VM de VMware y plantilla Ubuntu 24.04 con cloud-init.
-2. OPNsense: VLAN, matriz de flujos, DNS/NTP y VPN WireGuard.
-3. DC01 (Windows Server Core) y dominio; PKI en OPNsense.
-4. ADM-ANS01 como único punto de administración; desde ahí, Terraform y Ansible:
+**Build order** (each step depends on the previous one):
+1. Proxmox VE as a VMware VM and an Ubuntu 24.04 template with cloud-init.
+2. OPNsense: VLANs, flow matrix, DNS/NTP and WireGuard VPN.
+3. DC01 (Windows Server Core) and the domain; PKI on OPNsense.
+4. ADM-ANS01 as the single administration point; from there, Terraform and Ansible:
    ```bash
-   source ~/.secrets/pve-terraform.env          # token de Proxmox (nunca en el repositorio)
-   terraform -chdir=terraform apply             # VM declaradas en servers.auto.tfvars
-   cd ansible && ansible-playbook site.yml      # línea base, agentes, Docker, app, proxy, unión a AD
+   source ~/.secrets/pve-terraform.env          # Proxmox token (never in the repository)
+   terraform -chdir=terraform apply             # VMs declared in servers.auto.tfvars
+   cd ansible && ansible-playbook site.yml      # baseline, agents, Docker, app, proxy, AD join
    ```
-5. Monitorización, SIEM y Proxmox Backup Server; después, las rutinas de [docs/operacion](docs/operacion/README.md).
+5. Monitoring, SIEM and Proxmox Backup Server; then the routines in [docs/operacion](docs/operacion/README.md).
 
-Antes del paso 4, crea tus propios secretos a partir de [vault.yml.example](ansible/group_vars/all/vault.yml.example).
-Para operarlo: [docs/README.md](docs/README.md) (primeros pasos) y [docs/runbooks](docs/runbooks/README.md).
+Before step 4, create your own secrets from [vault.yml.example](ansible/group_vars/all/vault.yml.example). To operate it:
+[docs/README.md](docs/README.md) (first steps) and [docs/runbooks](docs/runbooks/README.md).
 
-## Limitaciones (honestas)
+## Limitations (honest ones)
 
-- **Un único anfitrión físico** con virtualización anidada: sin alta disponibilidad real y con sobrecarga de rendimiento.
-- **Memoria ajustada** (20 GB para todo): el SIEM y el servidor de copias no caben a la vez y se alternan en una ventana
-  diaria; las VM nuevas exigen perfiles de encendido.
-- **Copias en el mismo disco físico** (la segunda, en otra carpeta del anfitrión); sin copia fuera del sitio (riesgo aceptado).
-- **Licencias de evaluación** de Windows Server y un dominio `.internal` no público.
-- En producción haría falta: clúster de 3 nodos con almacenamiento compartido (Ceph), segundo controlador de dominio,
-  SIEM distribuido, copia externa cifrada y la protección de ramas aplicada.
+- **A single physical host** with nested virtualization: no real high availability and some performance overhead.
+- **Tight memory** (20 GB for everything): the SIEM and the backup server do not fit at the same time and take turns in a
+  daily window; new VMs require power-on profiles.
+- **Backups on the same physical disk** (the second copy, in another folder of the host); no off-site copy (accepted risk).
+- **Evaluation licenses** of Windows Server and a non-public `.internal` domain.
+- Production would require: a 3-node cluster with shared storage (Ceph), a second domain controller, a distributed SIEM,
+  an encrypted off-site copy and enforced branch protection.
 
-## Autor y licencia
+## Author and license
 
-Proyecto diseñado, construido, automatizado y documentado por **Erick Guarnizo**.
+Project designed, built, automated and documented by **Erick Guarnizo**.
 
-Código bajo [MIT](LICENSE); documentación bajo [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.es).
-Si reutilizas algo, cita la fuente: *Erick Guarnizo, Andes homelab, github.com/GUAR-NIX/ANDES-HOMELAB*.
+Code under [MIT](LICENSE); documentation under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). If you reuse
+anything, cite the source: *Erick Guarnizo, Andes homelab, github.com/GUAR-NIX/ANDES-HOMELAB*.

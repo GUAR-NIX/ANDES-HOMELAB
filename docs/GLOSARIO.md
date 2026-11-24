@@ -1,6 +1,6 @@
 # Glosario
 
-[Volver al README](../README.md) · [Guía del proyecto](GUIA-DEL-PROYECTO.md)
+[Volver al README](../README.es.md) · [Guía del proyecto](GUIA-DEL-PROYECTO.md)
 
 Los términos técnicos del proyecto explicados con palabras sencillas, con un ejemplo de dónde aparecen en Andes.
 

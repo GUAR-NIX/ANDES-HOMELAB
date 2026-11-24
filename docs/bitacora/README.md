@@ -4,7 +4,7 @@
 
 Es el diario de obra del proyecto: cada paso, en el orden en que se hizo, con **434 capturas de pantalla**, los comandos
 ejecutados, los errores que aparecieron y cómo se resolvieron. Es la evidencia de que todo lo que se cuenta en el
-[README](../../README.md) y en la [guía del proyecto](../GUIA-DEL-PROYECTO.md) se hizo de verdad.
+[README](../../README.es.md) y en la [guía del proyecto](../GUIA-DEL-PROYECTO.md) se hizo de verdad.
 
 | Fase | Contenido |
 |---|---|

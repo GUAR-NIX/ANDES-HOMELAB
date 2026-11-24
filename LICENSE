@@ -21,6 +21,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ---
-Documentation (docs/ and README.md) is licensed under CC BY 4.0:
+Documentation (docs/, README.md and README.es.md) is licensed under CC BY 4.0:
 https://creativecommons.org/licenses/by/4.0/
 This repository describes a lab environment (private addressing, internal domain, evaluation licenses).
