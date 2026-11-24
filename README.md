@@ -2,6 +2,11 @@
 
 **Autor: Erick Guarnizo** · Infraestructura · Ciberseguridad · DevOps
 
+[![Ver el video de demostración (3:26)](https://img.youtube.com/vi/rV9RyCcJ3Nk/hqdefault.jpg)](https://youtu.be/rV9RyCcJ3Nk)
+
+> 🎬 **[Video de demostración (3:26)](https://youtu.be/rV9RyCcJ3Nk)**: la plataforma funcionando, de la infraestructura
+> como código a la detección de un ataque y la recuperación ante desastres, con los resultados medidos.
+
 > 📘 **Bitácora paso a paso** — todo el proceso de construcción en 185 páginas y 434 capturas de pantalla:
 > **[Ver la bitácora (PDF)](BITACORA-PASO-A-PASO.pdf)**
 > (las credenciales aparecen tapadas; [qué se ocultó y por qué](docs/bitacora/README.md)).
