@@ -1,3 +1,5 @@
+🇪🇸 **Español** · 🇬🇧 [English](README.en.md)
+
 # Andes · infraestructura empresarial completa en una sola PC
 
 **Autor: Erick Guarnizo** · Infraestructura · Ciberseguridad · DevOps
