@@ -63,12 +63,12 @@ or real user traffic. The workloads belong to a fictional company.
 
 ## What failed
 
-- **The alert reached nobody.** The SIEM detected the change in 5 s, but no notification was sent, and availability monitoring
+- **The alert reached nobody.** The SIEM detected the change in 5 s, but nobody was notified of it, and availability monitoring
   saw `200 OK`. Detection without paging is not response ([INC-0001](docs/incidents/INC-0001.md)).
 - **A rebuilt server was left out of the domain.** The AD join was manual. It became the [`ad_member`](ansible/roles/ad_member)
   role with a delegated account, and the test was repeated.
-- **The recovery point was 12 h.** In drill DR-03, 5 of 10 test rows written after the last dump were lost, within the 24 h
-  objective.
+- **The recovery point was 12 h.** In drill DR-03, 5 of the 10 rows (those written after the last dump) were lost, within
+  the 24 h objective.
 - **The vault password existed only inside the lab.** Drill DR-04 exposed it: if the firewall falls, it cannot be reached.
 - **DR-04 was a partial drill.** The firewall was restored and checked in isolation, without swapping the live one.
 
@@ -79,7 +79,7 @@ More cases: [Real problems that had to be solved](#real-problems-that-had-to-be-
 | Result | Method |
 |---|---|
 | Rebuild time | Elapsed time printed by the [rebuild script](scripts/reconstruir-servidor.sh); logged as change [CHG-0012](docs/cambios/README.md) |
-| Recovery drills | Timed against an objective per drill, only after the backup was verified; files compared by SHA-256 ([log](docs/dr/resultados-simulacros.md)) |
+| Recovery drills | Timed, and compared with an objective where one was defined; destructive drills only after the backup was verified ([log](docs/dr/resultados-simulacros.md)) |
 | Detection and response | Event times in the SIEM and system logs, UTC timeline in [INC-0001](docs/incidents/INC-0001.md). One exercise, not an average |
 | Vulnerabilities | Vulnerability inventory in the SIEM before and after the patching change [CHG-7.4-01](docs/cambios/README.md) |
 | Hardening | Lynis and CIS Ubuntu 24.04 audits before and after ([guide, phase 4](docs/GUIA-DEL-PROYECTO.md)) |
@@ -98,15 +98,7 @@ laptop. And it does not stop at "installing it": it is **automated** (servers ar
 from code), **attacked** (an incident is simulated and the time to detect it is measured) and **broken on purpose**
 (servers are destroyed and recovered, against the clock).
 
-| What was demonstrated | Measured |
-|---|---|
-| A destroyed server rebuilds itself from code | **7 min 19 s**, no manual steps |
-| A malicious change on the website is detected | in **5 seconds** |
-| Server vulnerabilities are reduced | **−79%** in a 1-hour patching cycle |
-| Server security improves (Lynis audit) | from **63 to 83** points |
-| Backups really work | **6 out of 6** recovery drills passed |
-
-Full explanation, phase by phase, including the real problems that had to be solved:
+The measured results are in the table at the top of this page. Full explanation, phase by phase, including the real problems that had to be solved:
 **[Project guide (Spanish)](docs/GUIA-DEL-PROYECTO.md)**. The whole process with 434 screenshots:
 **[Implementation log (PDF, 185 pages, Spanish)](BITACORA-PASO-A-PASO.pdf)**. Unfamiliar term?
 **[Glossary (Spanish)](docs/GLOSARIO.md)**.
